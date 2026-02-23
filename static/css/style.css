@@ -636,3 +636,32 @@ nav { top: 34px; }
 
 /* ---- Footer crest ---- */
 .footer-crest { text-align: center; }
+
+/* ── Item detail two-column layout ── */
+.item-detail-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+.item-detail-img {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  background: var(--navy-mid);
+}
+.item-detail-img img { width:100%; height:100%; object-fit:cover; }
+.no-photo { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:5rem; background:linear-gradient(135deg,var(--navy-mid),var(--blue)); min-height:220px; }
+
+@media (max-width: 720px) {
+  .item-detail-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Smart Match result card ── */
+.btn-xs { font-size: 0.75rem; padding: 7px 14px; }
+
+/* ── Badge variants ── */
+.badge { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:3px 10px; border-radius:100px; display:inline-block; }
+.badge-approved { background:rgba(34,197,94,0.12); color:var(--success); border:1px solid rgba(34,197,94,0.25); }
+.badge-claimed  { background:rgba(74,127,212,0.12); color:var(--accent);  border:1px solid rgba(74,127,212,0.25); }
+.badge-pending  { background:rgba(245,158,11,0.12); color:var(--warning); border:1px solid rgba(245,158,11,0.25); }

@@ -105,6 +105,7 @@
           </p>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-primary">📬 Submit a Claim</a>
+            <a href="{{ url_for('timeline', item_id=item.id) }}" class="btn btn-glass">📋 View Journey</a>
             <button class="bookmark-btn" data-id="{{ item.id }}" style="width:auto; padding:0 16px;" aria-label="Bookmark this item">🏷️ Save</button>
           </div>
         </div>

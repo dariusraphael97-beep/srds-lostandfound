@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Item Journey — SRDS Lost & Found{% endblock %}
+
+{% block content %}
+<header class="page-header" aria-labelledby="timeline-heading">
+  <div class="container">
+    <a href="{{ url_for('item_detail', item_id=item.id) }}"
+       style="display:inline-flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--white-40); margin-bottom:16px; transition:color var(--transition);"
+       onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--white-40)'">← Back to item</a>
+    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:14px;">📋 Item Journey</div>
+    <h1 id="timeline-heading" style="font-size:clamp(1.6rem,3.5vw,2.6rem);">{{ item.name }}</h1>
+    <p>Tracking the full history of this item from discovery to return.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container" style="max-width:760px;">
+
+    <!-- Item card summary -->
+    <div class="card reveal" style="display:grid; grid-template-columns:90px 1fr; margin-bottom:48px; min-height:auto;">
+      <div style="overflow:hidden; border-radius:var(--radius-lg) 0 0 var(--radius-lg);">
+        {% if item.photo_url %}
+          <img src="{{ item.photo_url }}" alt="{{ item.name }}" style="width:90px; height:90px; object-fit:cover;" />
+        {% else %}
+          <div style="width:90px; height:90px; background:linear-gradient(135deg,var(--navy-mid),var(--blue)); display:flex; align-items:center; justify-content:center; font-size:2rem;">{{ item.emoji }}</div>
+        {% endif %}
+      </div>
+      <div style="padding:16px 20px; position:relative; z-index:1;">
+        <span class="card-category" style="margin-bottom:8px; display:inline-flex;">{{ item.category }}</span>
+        <h3 style="color:var(--white); font-size:1.1rem; margin-bottom:4px;">{{ item.name }}</h3>
+        <p style="font-size:0.82rem; color:var(--white-40);">📍 {{ item.location }} &nbsp;·&nbsp; 📅 {{ item.date_found }}</p>
+        <span class="badge badge-{% if item.status == 'approved' %}approved{% elif item.status == 'claimed' %}claimed{% else %}pending{% endif %}" style="margin-top:8px; display:inline-block;">
+          {{ item.status|capitalize }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="reveal">
+      <h2 style="font-size:1.4rem; margin-bottom:32px;">Item Journey</h2>
+
+      <!-- Build combined + sorted event list in template -->
+      {% set all_steps = [] %}
+
+      {# Always show "found" as first step #}
+      {% set _ = all_steps.append({'type': 'found', 'label': 'Item Discovered', 'detail': 'Someone found this item on campus and reported it to the system.', 'time': item.date_found, 'icon': '🔍', 'color': 'var(--accent)'}) %}
+
+      {# DB events #}
+      {% for e in events %}
+        {% if e.event == 'approved' %}
+          {% set _ = all_steps.append({'type': 'approved', 'label': 'Reviewed by Staff', 'detail': e.detail or 'Item reviewed and approved by SRDS administration.', 'time': e.timestamp, 'icon': '✅', 'color': 'var(--success)'}) %}
+        {% elif e.event == 'claim_submitted' %}
+          {% set _ = all_steps.append({'type': 'claim', 'label': 'Claim Submitted', 'detail': e.detail or 'A student submitted a claim for this item.', 'time': e.timestamp, 'icon': '📬', 'color': 'var(--warning)'}) %}
+        {% elif e.event == 'returned' %}
+          {% set _ = all_steps.append({'type': 'returned', 'label': 'Returned to Owner', 'detail': e.detail or 'Item successfully returned to its owner.', 'time': e.timestamp, 'icon': '🎉', 'color': 'var(--success)'}) %}
+        {% endif %}
+      {% endfor %}
+
+      {# Pending steps if not yet returned #}
+      {% if item.status != 'claimed' %}
+        {% if not events or events|selectattr('event', 'equalto', 'claim_submitted')|list|length == 0 %}
+          {% set _ = all_steps.append({'type': 'pending_claim', 'label': 'Awaiting Claim', 'detail': 'No claim submitted yet. Is this yours?', 'time': None, 'icon': '⏳', 'color': 'var(--white-40)'}) %}
+        {% endif %}
+        {% set _ = all_steps.append({'type': 'pending_return', 'label': 'Pickup & Return', 'detail': 'Item will be returned to verified owner at the front office.', 'time': None, 'icon': '🏠', 'color': 'var(--white-40)'}) %}
+      {% endif %}
+
+      <div style="position:relative;">
+        <!-- Vertical line -->
+        <div style="position:absolute; left:23px; top:12px; bottom:12px; width:2px; background:linear-gradient(to bottom, var(--accent), rgba(74,127,212,0.1)); border-radius:2px;"></div>
+
+        {% for step in all_steps %}
+        {% set is_done = step.time is not none %}
+        <div style="display:flex; gap:20px; margin-bottom:28px; position:relative; animation:slideIn 0.4s {{ loop.index0 * 0.12 }}s both;">
+
+          <!-- Icon circle -->
+          <div style="width:48px; height:48px; border-radius:50%; flex-shrink:0;
+               background:{% if is_done %}linear-gradient(135deg,{{ step.color }},{{ step.color }}){% else %}var(--white-05){% endif %};
+               border:2px solid {% if is_done %}{{ step.color }}{% else %}var(--white-10){% endif %};
+               display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+               box-shadow:{% if is_done %}0 4px 16px rgba(74,127,212,0.3){% else %}none{% endif %};
+               opacity:{% if is_done %}1{% else %}0.4{% endif %}; z-index:1; position:relative;">
+            {{ step.icon }}
+          </div>
+
+          <!-- Content -->
+          <div style="flex:1; padding-top:8px; {% if not is_done %}opacity:0.5{% endif %}">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap;">
+              <span style="font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:600; color:{% if is_done %}var(--white){% else %}var(--white-40){% endif %};">
+                {{ step.label }}
+              </span>
+              {% if is_done %}
+              <span style="font-size:0.72rem; color:var(--white-40);">{{ step.time }}</span>
+              {% else %}
+              <span style="font-size:0.7rem; background:var(--white-05); border:1px solid var(--white-10); color:var(--white-40); padding:2px 9px; border-radius:100px;">Pending</span>
+              {% endif %}
+            </div>
+            <p style="font-size:0.85rem; color:{% if is_done %}var(--white-70){% else %}var(--white-40){% endif %}; margin:0; line-height:1.5;">{{ step.detail }}</p>
+            {% if step.type == 'pending_claim' %}
+            <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-primary btn-sm" style="margin-top:12px;">Submit a Claim →</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Pending claims list for admin context -->
+    {% if claims %}
+    <div class="reveal" style="margin-top:48px;">
+      <h3 style="font-size:1.1rem; margin-bottom:16px;">{{ claims|length }} Claim{{ 's' if claims|length != 1 }} Submitted</h3>
+      {% for c in claims %}
+      <div style="background:var(--white-05); border:1px solid var(--white-10); border-radius:var(--radius-sm); padding:14px 18px; margin-bottom:10px; font-size:0.85rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span style="color:var(--white); font-weight:600;">{{ c.claimant }}</span>
+          <div style="display:flex; gap:8px; align-items:center;">
+            {% if c.proof_score %}
+            <span style="font-size:0.7rem; background:rgba(34,197,94,0.1); color:var(--success); border:1px solid rgba(34,197,94,0.2); padding:2px 8px; border-radius:100px; font-weight:700;">
+              Proof Score: {{ c.proof_score }}/100
+            </span>
+            {% endif %}
+            <span class="badge badge-{{ c.status }}">{{ c.status }}</span>
+          </div>
+        </div>
+        <p style="color:var(--white-40); margin:4px 0 0; font-size:0.8rem;">Submitted {{ c.submitted }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

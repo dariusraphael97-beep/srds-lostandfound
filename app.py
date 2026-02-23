@@ -98,6 +98,26 @@ def init_db():
             created     TEXT    NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS lost_reports (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            name        TEXT    NOT NULL,
+            category    TEXT    NOT NULL,
+            description TEXT    NOT NULL,
+            location    TEXT    NOT NULL,
+            date_lost   TEXT    NOT NULL,
+            contact     TEXT    NOT NULL,
+            submitted   TEXT    NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS item_events (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id     INTEGER NOT NULL,
+            event       TEXT    NOT NULL,
+            detail      TEXT    DEFAULT NULL,
+            timestamp   TEXT    NOT NULL,
+            FOREIGN KEY (item_id) REFERENCES items(id)
+        );
+
         CREATE TABLE IF NOT EXISTS item_variants (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             item_id     INTEGER NOT NULL,
@@ -128,6 +148,27 @@ def init_db():
         quantity INTEGER DEFAULT 1,
         FOREIGN KEY (item_id) REFERENCES items(id)
     )""")
+    db.execute("""CREATE TABLE IF NOT EXISTS lost_reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL, category TEXT NOT NULL,
+        description TEXT NOT NULL, location TEXT NOT NULL,
+        date_lost TEXT NOT NULL, contact TEXT NOT NULL,
+        submitted TEXT NOT NULL
+    )""")
+    db.execute("""CREATE TABLE IF NOT EXISTS item_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        event TEXT NOT NULL,
+        detail TEXT DEFAULT NULL,
+        timestamp TEXT NOT NULL,
+        FOREIGN KEY (item_id) REFERENCES items(id)
+    )""")
+    # Add proof_detail to claims if missing
+    claim_cols = [r[1] for r in db.execute("PRAGMA table_info(claims)").fetchall()]
+    if "proof_detail" not in claim_cols:
+        db.execute("ALTER TABLE claims ADD COLUMN proof_detail TEXT DEFAULT NULL")
+    if "proof_score" not in claim_cols:
+        db.execute("ALTER TABLE claims ADD COLUMN proof_score INTEGER DEFAULT 0")
     db.commit()
 
     # Seed sample items if table is empty
@@ -258,8 +299,91 @@ def init_db():
                     (airpods_id, variant, qty)
                 )
 
+        # Seed timeline events for all items
+        all_items = db.execute("SELECT id, submitted, date_found, name FROM items").fetchall()
+        for it in all_items:
+            db.execute("INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
+                (it["id"], "reported", f"Item reported as found at campus", it["submitted"]))
+            db.execute("INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
+                (it["id"], "approved", "Item reviewed and approved by staff", it["submitted"]))
+
         db.commit()
     db.close()
+
+# ─────────────────────────────────────────────
+# SMART MATCH ENGINE
+# Scores found items against a lost-item query
+# using category, location, keywords, date range
+# ─────────────────────────────────────────────
+import re as _re
+
+def smart_match(name, category, description, location, date_lost, db):
+    """Return top matches from found items with confidence scores and reasons."""
+    query_words = set(_re.sub(r"[^a-z0-9 ]", "", (name + " " + description).lower()).split())
+    stop_words  = {"a","an","the","is","in","at","of","and","or","it","i","my","was","with","found","lost","have"}
+    query_words -= stop_words
+
+    rows = db.execute(
+        "SELECT * FROM items WHERE status='approved' ORDER BY id DESC"
+    ).fetchall()
+
+    results = []
+    for row in rows:
+        score   = 0
+        reasons = []
+        d       = dict(row)
+
+        # Category match (strong signal)
+        if d["category"] == category:
+            score += 35
+            reasons.append("Same category")
+
+        # Location similarity
+        qloc = location.lower()
+        iloc = d["location"].lower()
+        loc_words = set(qloc.split()) & set(iloc.split()) - {"the","—","-","room","hall","area"}
+        if loc_words:
+            score += min(25, len(loc_words) * 12)
+            reasons.append(f"Nearby location ({', '.join(list(loc_words)[:2])})")
+
+        # Date proximity (within 7 days)
+        try:
+            from datetime import datetime as _dt
+            dl = _dt.strptime(date_lost, "%Y-%m-%d")
+            df = _dt.strptime(d["date_found"], "%Y-%m-%d")
+            diff = abs((dl - df).days)
+            if diff == 0:
+                score += 20; reasons.append("Same day")
+            elif diff <= 2:
+                score += 15; reasons.append(f"{diff}d apart")
+            elif diff <= 7:
+                score += 8;  reasons.append(f"Within a week")
+        except:
+            pass
+
+        # Keyword overlap in name + description
+        item_words = set(_re.sub(r"[^a-z0-9 ]", "",
+            (d["name"] + " " + d["description"] + " " + (d["item_detail"] or "")).lower()
+        ).split()) - stop_words
+        overlap = query_words & item_words
+        if overlap:
+            score += min(30, len(overlap) * 8)
+            reasons.append(f"Keyword match: {', '.join(list(overlap)[:3])}")
+
+        if score >= 20:
+            results.append({
+                "item":       d,
+                "score":      min(score, 99),
+                "confidence": "High" if score >= 65 else "Medium" if score >= 40 else "Low",
+                "reasons":    reasons,
+                "photo_url":  d.get("photo_url"),
+                "emoji":      CATEGORY_EMOJI.get(d["category"], "📦"),
+            })
+
+    results.sort(key=lambda x: x["score"], reverse=True)
+    return results[:5]
+
+
 
 def enrich_items(rows):
     """Add emoji; photo_url is already in the DB column. Fall back to category photo."""
@@ -392,13 +516,30 @@ def claim(item_id):
             flash("Please fill in all required fields.", "error")
             return redirect(url_for("claim", item_id=item_id))
 
+        proof_detail = request.form.get("proof_detail", "").strip()
+        # Calculate proof score: longer + more specific = higher
+        proof_score = 0
+        if proof_detail:
+            proof_score += min(50, len(proof_detail) // 3)
+            specific_keywords = ["serial","number","sticker","scratch","crack","initials","color","broken","dent","tag","wrote","name","code"]
+            for kw in specific_keywords:
+                if kw in proof_detail.lower():
+                    proof_score += 8
+            proof_score = min(proof_score, 100)
+
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         db.execute(
-            "INSERT INTO claims (item_id, claimant, email, student_id, message, submitted) VALUES (?,?,?,?,?,?)",
-            (item_id, claimant, email, student_id, message, datetime.now().strftime("%Y-%m-%d %H:%M")),
+            "INSERT INTO claims (item_id, claimant, email, student_id, message, proof_detail, proof_score, submitted) VALUES (?,?,?,?,?,?,?,?)",
+            (item_id, claimant, email, student_id, message, proof_detail, proof_score, now_str),
+        )
+        # Log timeline event
+        db.execute(
+            "INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
+            (item_id, "claim_submitted", f"Claim by {claimant} (proof score: {proof_score})", now_str)
         )
         db.commit()
         flash("Claim submitted! We'll contact you via email soon.", "success")
-        return redirect(url_for("items"))
+        return redirect(url_for("timeline", item_id=item_id))
 
     return render_template("claim.html", item=item)
 
@@ -418,6 +559,74 @@ def notify():
     else:
         flash("Please enter both your email and a keyword.", "error")
     return redirect(url_for("items"))
+
+
+
+@app.route("/lost", methods=["GET", "POST"])
+def lost_report():
+    """Page to report a lost item — triggers smart match suggestions."""
+    matches = []
+    form_data = {}
+    if request.method == "POST":
+        name        = request.form.get("name", "").strip()
+        category    = request.form.get("category", "").strip()
+        description = request.form.get("description", "").strip()
+        location    = request.form.get("location", "").strip()
+        date_lost   = request.form.get("date_lost", "").strip()
+        contact     = request.form.get("contact", "").strip()
+        form_data   = dict(request.form)
+
+        if not all([name, category, description, location, date_lost, contact]):
+            flash("Please fill in all required fields.", "error")
+            return redirect(url_for("lost_report"))
+
+        db = get_db()
+        db.execute(
+            "INSERT INTO lost_reports (name, category, description, location, date_lost, contact, submitted) VALUES (?,?,?,?,?,?,?)",
+            (name, category, description, location, date_lost, contact,
+             datetime.now().strftime("%Y-%m-%d %H:%M"))
+        )
+        db.commit()
+
+        # Run smart match
+        matches = smart_match(name, category, description, location, date_lost, db)
+        return render_template("lost_report.html", matches=matches, form_data=form_data, submitted=True)
+
+    return render_template("lost_report.html", matches=[], form_data={}, submitted=False)
+
+
+@app.route("/heatmap")
+def heatmap():
+    """Campus heatmap — item counts by location."""
+    db   = get_db()
+    rows = db.execute(
+        "SELECT location, category, COUNT(*) as count FROM items WHERE status='approved' GROUP BY location, category ORDER BY count DESC"
+    ).fetchall()
+    # Build location → counts dict
+    from collections import defaultdict
+    loc_data = defaultdict(lambda: {"total": 0, "categories": defaultdict(int)})
+    for r in rows:
+        loc_data[r["location"]]["total"]  += r["count"]
+        loc_data[r["location"]]["categories"][r["category"]] += r["count"]
+    return render_template("heatmap.html", loc_data=dict(loc_data))
+
+
+@app.route("/timeline/<int:item_id>")
+def timeline(item_id):
+    db  = get_db()
+    row = db.execute("SELECT * FROM items WHERE id=?", (item_id,)).fetchone()
+    if not row:
+        flash("Item not found.", "error")
+        return redirect(url_for("items"))
+    item   = enrich_items([row])[0]
+    events = db.execute(
+        "SELECT * FROM item_events WHERE item_id=? ORDER BY timestamp", (item_id,)
+    ).fetchall()
+    claims = db.execute(
+        "SELECT * FROM claims WHERE item_id=? ORDER BY submitted", (item_id,)
+    ).fetchall()
+    return render_template("timeline.html", item=item, events=events, claims=claims)
+
 
 
 # ---------- Admin Routes ----------
@@ -468,12 +677,16 @@ def admin_action():
 
     if action == "approve_item":
         db.execute("UPDATE items SET status='approved' WHERE id=?", (item_id,))
+        db.execute("INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
+            (item_id, "approved", "Item approved and published by admin", datetime.now().strftime("%Y-%m-%d %H:%M")))
         flash("Item approved and published.", "success")
     elif action == "reject_item":
         db.execute("DELETE FROM items WHERE id=?", (item_id,))
         flash("Item rejected and removed.", "success")
     elif action == "mark_claimed":
         db.execute("UPDATE items SET status='claimed' WHERE id=?", (item_id,))
+        db.execute("INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
+            (item_id, "returned", "Item marked as returned to owner", datetime.now().strftime("%Y-%m-%d %H:%M")))
         flash("Item marked as claimed.", "success")
     elif action == "approve_claim":
         claim = db.execute("SELECT * FROM claims WHERE id=?", (claim_id,)).fetchone()

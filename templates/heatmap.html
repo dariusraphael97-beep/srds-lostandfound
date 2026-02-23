@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}Campus Heatmap — SRDS Lost & Found{% endblock %}
+
+{% block content %}
+<header class="page-header" aria-labelledby="heatmap-heading">
+  <div class="container">
+    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:16px;">🗺 Data Visualization</div>
+    <h1 id="heatmap-heading">Campus Loss Heatmap</h1>
+    <p>Where items are most commonly found across Saddle River Day School.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Stats bar -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:48px;" class="reveal">
+      {% set total_items = loc_data.values()|sum(attribute='total') %}
+      <div class="stat-box" style="text-align:center; padding:24px;">
+        <div class="stat-number" style="font-size:2.2rem;" data-target="{{ total_items }}">0</div>
+        <div class="stat-label">Total Found Items</div>
+      </div>
+      <div class="stat-box" style="text-align:center; padding:24px;">
+        <div class="stat-number" style="font-size:2.2rem;" data-target="{{ loc_data|length }}">0</div>
+        <div class="stat-label">Campus Locations</div>
+      </div>
+      {% if loc_data %}
+      {% set top_loc = loc_data.items()|list|sort(attribute='1.total')|reverse|first %}
+      <div class="stat-box" style="text-align:center; padding:24px;">
+        <div style="font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:700; color:var(--white); line-height:1.2; margin-bottom:6px;">{{ top_loc[0].split('—')[0].strip() }}</div>
+        <div class="stat-label">Hottest Spot</div>
+      </div>
+      {% endif %}
+      <div class="stat-box" style="text-align:center; padding:24px;">
+        <div class="stat-number" style="font-size:2.2rem;">📱</div>
+        <div class="stat-label">Electronics Most Lost</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:32px; align-items:start;">
+
+      <!-- SVG Campus Map -->
+      <div class="card reveal" style="padding:28px;">
+        <h3 style="margin-bottom:20px; font-size:1.2rem; display:flex; align-items:center; gap:10px;">
+          Campus Overview
+          <span style="font-size:0.72rem; color:var(--white-40); font-weight:400;">Dot size = items found there</span>
+        </h3>
+
+        <svg viewBox="0 0 520 420" xmlns="http://www.w3.org/2000/svg"
+             style="width:100%; height:auto; background:rgba(13,27,62,0.6); border-radius:12px; border:1px solid var(--white-10);">
+
+          <!-- Grid lines -->
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+            </pattern>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+          </defs>
+          <rect width="520" height="420" fill="url(#grid)"/>
+
+          <!-- Buildings -->
+          <!-- Main Hall -->
+          <rect x="30" y="30" width="150" height="100" rx="6"
+                fill="rgba(26,58,143,0.5)" stroke="rgba(74,127,212,0.5)" stroke-width="1.5"/>
+          <text x="105" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="11" fill="rgba(255,255,255,0.7)" font-weight="600">Main Hall</text>
+          <text x="105" y="95" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="9" fill="rgba(255,255,255,0.4)">Office · Lower School</text>
+
+          <!-- North Hall -->
+          <rect x="200" y="30" width="160" height="100" rx="6"
+                fill="rgba(26,58,143,0.5)" stroke="rgba(74,127,212,0.5)" stroke-width="1.5"/>
+          <text x="280" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="11" fill="rgba(255,255,255,0.7)" font-weight="600">North Hall</text>
+          <text x="280" y="95" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="9" fill="rgba(255,255,255,0.4)">Gym · Cafeteria · CIE</text>
+
+          <!-- Alford Hall -->
+          <rect x="380" y="30" width="120" height="100" rx="6"
+                fill="rgba(26,58,143,0.5)" stroke="rgba(74,127,212,0.5)" stroke-width="1.5"/>
+          <text x="440" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="11" fill="rgba(255,255,255,0.7)" font-weight="600">Alford Hall</text>
+          <text x="440" y="95" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="9" fill="rgba(255,255,255,0.4)">MS · US Classes</text>
+
+          <!-- Library -->
+          <rect x="30" y="160" width="140" height="90" rx="6"
+                fill="rgba(26,58,143,0.5)" stroke="rgba(74,127,212,0.5)" stroke-width="1.5"/>
+          <text x="100" y="205" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="11" fill="rgba(255,255,255,0.7)" font-weight="600">Library</text>
+          <text x="100" y="222" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="9" fill="rgba(255,255,255,0.4)">Study · Charging</text>
+
+          <!-- Athletic Fields -->
+          <rect x="200" y="160" width="300" height="120" rx="6"
+                fill="rgba(26,58,143,0.3)" stroke="rgba(74,127,212,0.3)" stroke-width="1" stroke-dasharray="6,4"/>
+          <text x="350" y="215" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="11" fill="rgba(255,255,255,0.5)" font-weight="600">Athletic Fields</text>
+
+          <!-- Pathways -->
+          <line x1="180" y1="80"  x2="200" y2="80"  stroke="rgba(74,127,212,0.25)" stroke-width="8" stroke-linecap="round"/>
+          <line x1="360" y1="80"  x2="380" y2="80"  stroke="rgba(74,127,212,0.25)" stroke-width="8" stroke-linecap="round"/>
+          <line x1="105" y1="130" x2="105" y2="160" stroke="rgba(74,127,212,0.25)" stroke-width="8" stroke-linecap="round"/>
+
+          <!-- Outdoor area -->
+          <rect x="30" y="280" width="460" height="80" rx="6"
+                fill="rgba(26,58,143,0.2)" stroke="rgba(74,127,212,0.2)" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="260" y="325" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="11" fill="rgba(255,255,255,0.4)" font-weight="500">Outdoor Lunch Area · Charter Field</text>
+
+          <!-- Compass -->
+          <text x="490" y="400" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif"
+                font-size="9" fill="rgba(255,255,255,0.2)">N↑</text>
+
+          <!-- HOTSPOT DOTS — dynamically sized by JS -->
+          <!-- Each dot corresponds to a location cluster -->
+          <g id="hotspots">
+            <!-- Main Hallway / Front Office -->
+            <circle class="hotspot" data-location="main" cx="105" cy="150" r="0" fill="rgba(239,68,68,0.7)" filter="url(#glow)"/>
+            <!-- Gym / Bleachers -->
+            <circle class="hotspot" data-location="gym" cx="240" cy="115" r="0" fill="rgba(245,158,11,0.8)" filter="url(#glow)"/>
+            <!-- Cafeteria -->
+            <circle class="hotspot" data-location="cafe" cx="320" cy="100" r="0" fill="rgba(239,68,68,0.7)" filter="url(#glow)"/>
+            <!-- Library -->
+            <circle class="hotspot" data-location="library" cx="100" cy="200" r="0" fill="rgba(245,158,11,0.8)" filter="url(#glow)"/>
+            <!-- Athletic Fields -->
+            <circle class="hotspot" data-location="athletic" cx="350" cy="230" r="0" fill="rgba(74,127,212,0.9)" filter="url(#glow)"/>
+            <!-- Outdoor Lunch -->
+            <circle class="hotspot" data-location="outdoor" cx="260" cy="320" r="0" fill="rgba(74,127,212,0.8)" filter="url(#glow)"/>
+            <!-- Alford / Science / Math -->
+            <circle class="hotspot" data-location="alford" cx="440" cy="130" r="0" fill="rgba(74,127,212,0.7)" filter="url(#glow)"/>
+          </g>
+
+          <!-- Legend -->
+          <g transform="translate(30, 380)">
+            <circle cx="8"  cy="0" r="7" fill="rgba(239,68,68,0.7)"/>
+            <text x="20" y="4" font-family="Plus Jakarta Sans,sans-serif" font-size="9" fill="rgba(255,255,255,0.5)">High</text>
+            <circle cx="65" cy="0" r="5" fill="rgba(245,158,11,0.8)"/>
+            <text x="75" y="4" font-family="Plus Jakarta Sans,sans-serif" font-size="9" fill="rgba(255,255,255,0.5)">Medium</text>
+            <circle cx="130" cy="0" r="4" fill="rgba(74,127,212,0.9)"/>
+            <text x="140" y="4" font-family="Plus Jakarta Sans,sans-serif" font-size="9" fill="rgba(255,255,255,0.5)">Low</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Location breakdown list -->
+      <div>
+        <h3 class="reveal" style="font-size:1.2rem; margin-bottom:20px;">Breakdown by Location</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          {% set max_count = loc_data.values()|map(attribute='total')|max if loc_data else 1 %}
+          {% for loc, data in loc_data.items()|list|sort(attribute='1.total')|reverse %}
+          <div class="reveal" style="background:var(--white-05); border:1px solid var(--white-10); border-radius:var(--radius-sm); padding:14px 16px; transition:all var(--transition);"
+               onmouseover="this.style.borderColor='rgba(74,127,212,0.4)'"
+               onmouseout="this.style.borderColor='var(--white-10)'">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.88rem; font-weight:600; color:var(--white);">{{ loc }}</span>
+              <span style="font-size:0.8rem; color:var(--accent); font-weight:700;">{{ data.total }} item{{ 's' if data.total != 1 }}</span>
+            </div>
+            <!-- Progress bar -->
+            <div style="height:4px; background:var(--white-10); border-radius:2px; overflow:hidden;">
+              <div style="height:100%; width:{{ (data.total / max_count * 100)|int }}%; background:linear-gradient(90deg,var(--accent),var(--blue-bright)); border-radius:2px; transition:width 1s ease;"></div>
+            </div>
+            <!-- Category chips -->
+            <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">
+              {% for cat, cnt in data.categories.items() %}
+              <span style="font-size:0.65rem; background:var(--white-05); border:1px solid var(--white-10); color:var(--white-40); padding:2px 7px; border-radius:100px;">{{ cat }} ×{{ cnt }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% if not loc_data %}
+        <div class="empty-state"><div class="empty-icon">📍</div><h3>No data yet</h3><p>Add some items to see the heatmap.</p></div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Animate hotspot dots based on actual data counts
+const locationMap = {
+  main:     ['main hallway', 'main hall', 'front office', 'entrance', 'lockers'],
+  gym:      ['gym', 'bleacher', 'gymnasium'],
+  cafe:     ['cafeteria', 'cafe', 'table'],
+  library:  ['library', 'study', 'charging'],
+  athletic: ['athletic', 'field', 'equipment'],
+  outdoor:  ['outdoor', 'lunch area', 'bench'],
+  alford:   ['alford', 'science', 'math', 'room', 'upper school'],
+};
+
+const rawData = {{ loc_data | tojson }};
+const counts = {};
+for (const [loc, data] of Object.entries(rawData)) {
+  const lk = loc.toLowerCase();
+  for (const [key, keywords] of Object.entries(locationMap)) {
+    if (keywords.some(kw => lk.includes(kw))) {
+      counts[key] = (counts[key] || 0) + data.total;
+    }
+  }
+}
+
+const maxCount = Math.max(...Object.values(counts), 1);
+document.querySelectorAll('.hotspot').forEach(dot => {
+  const key = dot.dataset.location;
+  const count = counts[key] || 0;
+  const r = count > 0 ? 8 + (count / maxCount) * 18 : 4;
+  // Animate radius
+  dot.setAttribute('r', 0);
+  setTimeout(() => {
+    dot.style.transition = 'r 1s ease';
+    dot.setAttribute('r', r);
+  }, 500 + Math.random() * 400);
+  // Pulse animation for high-count spots
+  if (count >= 3) {
+    dot.style.animation = `pulse ${1.5 + Math.random()}s ease-in-out infinite`;
+  }
+});
+</script>
+{% endblock %}

@@ -65,11 +65,42 @@
             <input type="text" id="student_id" name="student_id" placeholder="e.g. 2024001" required />
           </div>
           <div class="form-group">
-            <label for="message">Proof of Ownership <span style="color:var(--white-40); font-weight:400; text-transform:none;">(optional but recommended)</span></label>
-            <textarea id="message" name="message" placeholder="Describe any identifying details — serial numbers, unique marks, what was inside the bag…"></textarea>
+            <label for="message">Additional Notes <span style="color:var(--white-40); font-weight:400; text-transform:none;">(optional)</span></label>
+            <textarea id="message" name="message" placeholder="Anything else you want staff to know…"></textarea>
           </div>
-          <div style="background:rgba(74,127,212,0.08); border:1px solid rgba(74,127,212,0.2); border-radius:var(--radius-sm); padding:14px 18px; margin-bottom:24px; font-size:0.85rem; color:var(--white-70);">
-            ⚠️ Submitting a false claim violates the SRDS Honor Code. Staff will verify your identity before releasing any item.
+
+          <!-- PRIVATE PROOF SECTION -->
+          <div style="background:linear-gradient(135deg,rgba(74,127,212,0.08),rgba(26,58,143,0.06)); border:1px solid rgba(74,127,212,0.25); border-radius:var(--radius); padding:22px; margin-bottom:24px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+              <span style="font-size:1.2rem;">🔒</span>
+              <h4 style="font-size:1rem; color:var(--white); margin:0;">Private Proof of Ownership</h4>
+              <span style="font-size:0.68rem; background:rgba(34,197,94,0.15); color:var(--success); border:1px solid rgba(34,197,94,0.25); padding:2px 8px; border-radius:100px; font-weight:700; margin-left:auto;">Strongly Recommended</span>
+            </div>
+            <p style="font-size:0.82rem; color:var(--white-40); margin-bottom:16px; line-height:1.6;">
+              Describe a <strong style="color:var(--white-70);">hidden detail only the real owner would know</strong> — a scratch, a sticker on the inside, what's written on the back, missing parts, what was in the bag, etc. This is <em>not shown publicly</em>. It just helps staff verify your claim faster and gives you a higher Proof Score.
+            </p>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label for="proof_detail" style="font-size:0.78rem;">Secret Identifying Detail <span style="color:var(--error);">*</span></label>
+              <textarea id="proof_detail" name="proof_detail" rows="3"
+                placeholder="e.g. There's a crack on the bottom-right corner of the case. My name 'J. Morris' is written in Sharpie on the back. The keychain has a small blue star charm…" required></textarea>
+            </div>
+
+            <!-- Live proof score meter -->
+            <div style="background:var(--white-05); border:1px solid var(--white-10); border-radius:var(--radius-sm); padding:12px 16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:0.75rem; color:var(--white-70); font-weight:600;">Proof Score</span>
+                <span id="proof-score-label" style="font-size:0.85rem; font-weight:700; color:var(--white-40);">Start typing…</span>
+              </div>
+              <div style="height:6px; background:var(--white-10); border-radius:3px; overflow:hidden;">
+                <div id="proof-score-bar" style="height:100%; width:0%; border-radius:3px; transition:width 0.4s ease, background 0.4s ease; background:var(--accent);"></div>
+              </div>
+              <p style="font-size:0.7rem; color:var(--white-40); margin-top:8px;">Higher score = faster approval. Mention specifics like scratches, initials, serial digits, contents, or color details.</p>
+            </div>
+          </div>
+
+          <div style="background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.2); border-radius:var(--radius-sm); padding:14px 18px; margin-bottom:24px; font-size:0.84rem; color:var(--white-70); display:flex; gap:10px;">
+            <span>⚠️</span>
+            <span>Submitting a false claim violates the SRDS Honor Code. Staff will verify your identity before releasing any item.</span>
           </div>
           <div style="display:flex; gap:12px; flex-wrap:wrap;">
             <button type="submit" class="btn btn-primary">📬 Submit Claim</button>
@@ -81,4 +112,40 @@
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const proofInput = document.getElementById('proof_detail');
+const scoreBar   = document.getElementById('proof-score-bar');
+const scoreLabel = document.getElementById('proof-score-label');
+const keywords   = ['serial','number','sticker','scratch','crack','initials','broken',
+  'dent','tag','wrote','name','code','charm','inside','pocket','keychain','sharpie',
+  'marker','missing','chipped','strap','writing','digits','model','color','pattern'];
+
+function calcScore(text) {
+  if (!text.trim()) return 0;
+  let s = Math.min(40, Math.floor(text.trim().length / 4));
+  keywords.forEach(kw => { if (text.toLowerCase().includes(kw)) s += 8; });
+  return Math.min(s, 100);
+}
+
+proofInput?.addEventListener('input', () => {
+  const s = calcScore(proofInput.value);
+  scoreBar.style.width = s + '%';
+  if (s < 30) {
+    scoreBar.style.background = 'var(--error)';
+    scoreLabel.textContent = s + '% — Weak, add more detail';
+    scoreLabel.style.color = 'var(--error)';
+  } else if (s < 60) {
+    scoreBar.style.background = 'var(--warning)';
+    scoreLabel.textContent = s + '% — Getting there…';
+    scoreLabel.style.color = 'var(--warning)';
+  } else {
+    scoreBar.style.background = 'var(--success)';
+    scoreLabel.textContent = s + '% — Strong proof ✓';
+    scoreLabel.style.color = 'var(--success)';
+  }
+});
+</script>
 {% endblock %}

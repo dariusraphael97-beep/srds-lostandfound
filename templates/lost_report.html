@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}I Lost Something — SRDS Lost & Found{% endblock %}
+
+{% block content %}
+<header class="page-header" aria-labelledby="lost-heading">
+  <div class="container">
+    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:16px;">🔍 Smart Match</div>
+    <h1 id="lost-heading">I Lost Something</h1>
+    <p>Tell us what you lost — we'll instantly search for likely matches.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container" style="max-width:960px;">
+
+    {% if not submitted %}
+    <!-- FORM -->
+    <form class="form-card reveal" method="POST" data-validate style="max-width:100%;">
+      <div style="margin-bottom:32px;">
+        <h2 style="font-size:1.6rem; margin-bottom:8px;">Describe Your Lost Item</h2>
+        <p style="font-size:0.88rem; color:var(--white-40);">The more detail you give, the better the matches. Fields marked <span style="color:var(--error);">*</span> are required.</p>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;" class="two-col">
+        <div class="form-group">
+          <label for="name">Item Name <span class="required">*</span></label>
+          <input type="text" id="name" name="name" placeholder="e.g. AirPods Pro, Blue backpack" required />
+        </div>
+        <div class="form-group">
+          <label for="category">Category <span class="required">*</span></label>
+          <select id="category" name="category" required>
+            <option value="" disabled selected>Select…</option>
+            <option>Clothing &amp; Apparel</option>
+            <option>Electronics</option>
+            <option>Books &amp; Stationery</option>
+            <option>Bags &amp; Backpacks</option>
+            <option>Sports Equipment</option>
+            <option>Jewelry &amp; Accessories</option>
+            <option>Keys</option>
+            <option>Water Bottles</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description <span class="required">*</span></label>
+        <textarea id="description" name="description" placeholder="Color, brand, model, any stickers, scratches, name written on it, what was inside…" required></textarea>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;" class="two-col">
+        <div class="form-group">
+          <label for="location">Where Did You Last Have It? <span class="required">*</span></label>
+          <input type="text" id="location" name="location" placeholder="e.g. Gym, Library, Cafeteria" required />
+        </div>
+        <div class="form-group">
+          <label for="date_lost">Date Lost <span class="required">*</span></label>
+          <input type="date" id="date_lost" name="date_lost" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="contact">Your School Email <span class="required">*</span></label>
+        <input type="email" id="contact" name="contact" placeholder="you@srds.org" required />
+      </div>
+
+      <div style="background:rgba(74,127,212,0.08); border:1px solid rgba(74,127,212,0.2); border-radius:var(--radius-sm); padding:14px 18px; margin-bottom:24px; font-size:0.85rem; color:var(--white-70); display:flex; gap:10px; align-items:center;">
+        <span style="font-size:1.2rem;">✨</span>
+        <span>After submitting, we'll instantly show you the <strong>top matching found items</strong> with a confidence score and reasons why they match.</span>
+      </div>
+
+      <button type="submit" class="btn btn-primary">✨ Find Matches →</button>
+    </form>
+
+    {% else %}
+    <!-- SMART MATCH RESULTS -->
+    <div class="reveal" style="margin-bottom:40px; text-align:center;">
+      <div style="width:72px; height:72px; background:linear-gradient(135deg,var(--accent),var(--blue-bright)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 20px; box-shadow:0 8px 32px var(--accent-glow);">✓</div>
+      <h2 style="font-size:2rem; margin-bottom:10px;">Report Submitted!</h2>
+      <p style="color:var(--white-70);">We searched all {{ matches|length > 0 and 'found items' or 'found items' }} on campus. Here's what we found:</p>
+    </div>
+
+    {% if matches %}
+    <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px;" class="reveal">
+      <h3 style="font-size:1.2rem;">✨ Smart Match Results</h3>
+      <span style="font-size:0.72rem; background:rgba(74,127,212,0.15); color:var(--accent); border:1px solid rgba(74,127,212,0.3); padding:4px 12px; border-radius:100px; font-weight:700;">{{ matches|length }} possible match{{ 'es' if matches|length != 1 }}</span>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:40px;">
+      {% for m in matches %}
+      <div class="card reveal reveal-delay-{{ loop.index if loop.index <= 3 else 3 }}"
+           style="display:grid; grid-template-columns:100px 1fr auto; gap:0; align-items:stretch;">
+
+        <!-- Photo thumbnail -->
+        <div style="overflow:hidden; border-radius:var(--radius-lg) 0 0 var(--radius-lg);">
+          {% if m.photo_url %}
+            <img src="{{ m.photo_url }}" alt="{{ m.item.name }}" style="width:100%; height:100%; object-fit:cover; min-height:110px;" loading="lazy" />
+          {% else %}
+            <div style="width:100%; height:100%; min-height:110px; background:linear-gradient(135deg,var(--navy-mid),var(--blue)); display:flex; align-items:center; justify-content:center; font-size:2.5rem;">{{ m.emoji }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Details -->
+        <div style="padding:18px 20px; position:relative; z-index:1;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+            <span class="card-category" style="margin:0;">{{ m.item.category }}</span>
+            <span style="font-size:0.72rem; color:var(--white-40);">📍 {{ m.item.location }}</span>
+            <span style="font-size:0.72rem; color:var(--white-40);">📅 {{ m.item.date_found }}</span>
+          </div>
+          <h4 style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--white); margin-bottom:8px;">{{ m.item.name }}</h4>
+          <p style="font-size:0.82rem; color:var(--white-40); margin-bottom:10px; line-height:1.5;">{{ m.item.description[:100] }}…</p>
+          <!-- Why matched -->
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            {% for reason in m.reasons %}
+            <span style="font-size:0.68rem; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); color:var(--success); padding:3px 9px; border-radius:100px;">✓ {{ reason }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Confidence score + action -->
+        <div style="padding:18px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; border-left:1px solid var(--white-10); min-width:110px;">
+          <!-- Score ring -->
+          <div style="position:relative; width:64px; height:64px;">
+            <svg width="64" height="64" viewBox="0 0 64 64" style="transform:rotate(-90deg);">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="var(--white-05)" stroke-width="6"/>
+              <circle cx="32" cy="32" r="26" fill="none"
+                stroke="{% if m.confidence == 'High' %}var(--success){% elif m.confidence == 'Medium' %}var(--warning){% else %}var(--accent){% endif %}"
+                stroke-width="6"
+                stroke-dasharray="{{ m.score * 1.634 }} 164"
+                stroke-linecap="round"/>
+            </svg>
+            <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <span style="font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:700; color:var(--white); line-height:1;">{{ m.score }}%</span>
+            </div>
+          </div>
+          <span style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;
+            color:{% if m.confidence == 'High' %}var(--success){% elif m.confidence == 'Medium' %}var(--warning){% else %}var(--accent){% endif %};">
+            {{ m.confidence }}
+          </span>
+          <a href="{{ url_for('claim', item_id=m.item.id) }}" class="btn btn-primary btn-xs">Claim →</a>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state reveal">
+      <div class="empty-icon">🤷</div>
+      <h3>No matches found yet</h3>
+      <p>No found items match your description right now — but your report is saved.<br>We'll reach out if a matching item gets turned in.</p>
+    </div>
+    {% endif %}
+
+    <div class="reveal" style="text-align:center; margin-top:32px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <a href="{{ url_for('items') }}" class="btn btn-glass">Browse All Found Items</a>
+      <a href="{{ url_for('lost_report') }}" class="btn btn-outline">Submit Another Report</a>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.two-col').forEach(el => {
+    if (window.innerWidth < 540) el.style.gridTemplateColumns = '1fr';
+  });
+  const dl = document.getElementById('date_lost');
+  if (dl) dl.max = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

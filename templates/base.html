@@ -55,8 +55,10 @@
 
       <ul class="nav-links" id="navLinks" role="list">
         <li><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
-        <li><a href="{{ url_for('items') }}" class="{% if request.endpoint == 'items' %}active{% endif %}">Browse Items</a></li>
-        <li><a href="{{ url_for('report') }}" class="btn-nav {% if request.endpoint == 'report' %}active{% endif %}">+ Report Item</a></li>
+        <li><a href="{{ url_for('items') }}"      class="{% if request.endpoint == 'items' %}active{% endif %}">Browse Found</a></li>
+        <li><a href="{{ url_for('heatmap') }}"     class="{% if request.endpoint == 'heatmap' %}active{% endif %}">🗺 Heatmap</a></li>
+        <li><a href="{{ url_for('lost_report') }}" class="{% if request.endpoint == 'lost_report' %}active{% endif %}">I Lost Something</a></li>
+        <li><a href="{{ url_for('report') }}"      class="btn-nav {% if request.endpoint == 'report' %}active{% endif %}">+ Found Item</a></li>
       </ul>
 
       <div class="nav-actions">
