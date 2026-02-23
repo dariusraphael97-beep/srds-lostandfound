@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <path id="topArc"    d="M 14,100 A 86,86 0 0,1 186,100"/>
+    <path id="bottomArc" d="M 20,112 A 86,86 0 0,0 180,112"/>
+  </defs>
+
+  <!-- Outer thick ring -->
+  <circle cx="100" cy="100" r="94" stroke="#3a6fd8" stroke-width="7" fill="none"/>
+  <!-- Inner thin ring -->
+  <circle cx="100" cy="100" r="78" stroke="#3a6fd8" stroke-width="2" fill="none" opacity="0.7"/>
+
+  <!-- SADDLE RIVER curved top -->
+  <text font-family="Arial,Helvetica,sans-serif" font-size="13.5" font-weight="900" fill="#5a90e8" letter-spacing="3" text-anchor="middle">
+    <textPath href="#topArc" startOffset="50%">SADDLE RIVER</textPath>
+  </text>
+
+  <!-- DAY SCHOOL curved bottom -->
+  <text font-family="Arial,Helvetica,sans-serif" font-size="13.5" font-weight="900" fill="#5a90e8" letter-spacing="4.5" text-anchor="middle">
+    <textPath href="#bottomArc" startOffset="50%">DAY SCHOOL</textPath>
+  </text>
+
+  <!-- Side dots -->
+  <circle cx="14"  cy="100" r="4" fill="#3a6fd8"/>
+  <circle cx="186" cy="100" r="4" fill="#3a6fd8"/>
+
+  <!-- ET left -->
+  <text font-family="Arial,sans-serif" font-size="8.5" font-weight="700" fill="#4a7fd4" opacity="0.8">
+    <tspan x="27" y="95">E</tspan><tspan x="27" y="107">T</tspan>
+  </text>
+  <!-- FIDE right -->
+  <text font-family="Arial,sans-serif" font-size="8.5" font-weight="700" fill="#4a7fd4" opacity="0.8">
+    <tspan x="163" y="90">F</tspan><tspan x="163" y="100">I</tspan><tspan x="163" y="110">D</tspan><tspan x="163" y="120">E</tspan>
+  </text>
+
+  <!-- Shield -->
+  <path d="M 100,40 L 133,53 L 133,91 Q 133,122 100,136 Q 67,122 67,91 L 67,53 Z" fill="#1e3f9e" stroke="#3a6fd8" stroke-width="2.5"/>
+  <!-- Shield left half (darker) -->
+  <path d="M 67,53 L 100,40 L 100,136 Q 67,122 67,91 Z" fill="#18357a"/>
+  <!-- Shield right half (slightly lighter blue) -->
+  <path d="M 100,40 L 133,53 L 133,91 Q 133,122 100,136 Z" fill="#2548a8"/>
+
+  <!-- Shield center vertical -->
+  <line x1="100" y1="40" x2="100" y2="136" stroke="#4a7fd4" stroke-width="2" opacity="0.6"/>
+  <!-- Shield horizontal bar -->
+  <line x1="67" y1="88" x2="133" y2="88" stroke="#4a7fd4" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- ANIMO in shield -->
+  <text x="100" y="118" font-family="Georgia,'Times New Roman',serif" font-size="10" font-weight="700" font-style="italic" fill="#8ab4f8" text-anchor="middle" letter-spacing="2.5" opacity="0.95">ANIMO</text>
+</svg>
