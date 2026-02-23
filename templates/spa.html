@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SRDS Lost &amp; Found — Mission Control</title>
+  <link rel="stylesheet" href="/static/css/spa.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LEFT RAIL
+══════════════════════════════════════════ -->
+<nav class="rail" aria-label="Main navigation">
+
+  <img src="/static/img/srds-crest.svg" class="rail-logo" alt="SRDS" title="Saddle River Day School"
+       onclick="showView('radar')" />
+
+  <button class="rail-btn active" id="rail-radar" onclick="showView('radar')" aria-label="Live Radar">
+    <span>⬡</span>
+    <span class="tooltip">Live Radar</span>
+  </button>
+
+  <button class="rail-btn" id="rail-items" onclick="showView('items')" aria-label="Browse Items">
+    <span>⊞</span>
+    <span class="tooltip">Browse Items</span>
+  </button>
+
+  <button class="rail-btn" id="rail-match" onclick="showView('match')" aria-label="Smart Match">
+    <span>◎</span>
+    <span class="tooltip">Smart Match</span>
+  </button>
+
+  <button class="rail-btn" id="rail-report" onclick="showView('report')" aria-label="Report Item">
+    <span>⊕</span>
+    <span class="tooltip">Report Found Item</span>
+  </button>
+
+  <button class="rail-btn" id="rail-heatmap" onclick="showView('heatmap')" aria-label="Campus Heatmap">
+    <span>◈</span>
+    <span class="tooltip">Campus Heatmap</span>
+  </button>
+
+  <div class="rail-spacer"></div>
+
+  <button class="rail-btn" onclick="window.open('/admin','_blank')" aria-label="Admin">
+    <span>⊛</span>
+    <span class="tooltip">Admin Panel</span>
+  </button>
+
+</nav>
+
+<!-- ══════════════════════════════════════════
+     STAGE
+══════════════════════════════════════════ -->
+<main class="stage">
+  <div class="stage-bg" aria-hidden="true"></div>
+
+  <!-- Stage header -->
+  <header class="stage-header">
+    <div>
+      <div class="stage-sub" id="stage-sub">Live Radar</div>
+      <div class="stage-title" id="stage-title">SRDS Lost &amp; Found</div>
+    </div>
+    <div class="header-right">
+      <div class="search-bar">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="search-input" placeholder="Search items… (Ctrl K)" autocomplete="off" />
+      </div>
+      <div class="filter-chips" id="filter-chips">
+        <button class="chip active" data-cat="">All</button>
+        <button class="chip" data-cat="Electronics">Electronics</button>
+        <button class="chip" data-cat="Bags &amp; Backpacks">Bags</button>
+        <button class="chip" data-cat="Clothing &amp; Apparel">Clothing</button>
+        <button class="chip" data-cat="Books &amp; Stationery">Books</button>
+        <button class="chip" data-cat="Sports Equipment">Sports</button>
+        <button class="chip" data-cat="Jewelry &amp; Accessories">Jewelry</button>
+        <button class="chip" data-cat="Keys">Keys</button>
+        <button class="chip" data-cat="Water Bottles">Bottles</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Views -->
+  <div class="views">
+
+    <!-- ── RADAR VIEW ── -->
+    <div class="view active" id="view-radar">
+      <canvas id="radar-canvas" aria-label="Interactive item radar — click dots to inspect items"></canvas>
+    </div>
+
+    <!-- ── ITEMS GRID VIEW ── -->
+    <div class="view" id="view-items">
+      <div class="loading-grid" id="items-loading" aria-hidden="true">
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      </div>
+      <div class="items-masonry" id="items-grid" style="display:none;"></div>
+    </div>
+
+    <!-- ── SMART MATCH VIEW ── -->
+    <div class="view" id="view-match">
+      <div class="wizard-wrap">
+        <div style="margin-bottom:32px;">
+          <div class="stage-sub" style="margin-bottom:8px;">✨ Smart Match</div>
+          <div class="wizard-heading">I Lost Something</div>
+          <div class="wizard-sub">Describe what you lost — we'll instantly search for likely matches across all found items.</div>
+        </div>
+        <form id="match-form" style="display:flex; flex-direction:column; gap:14px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div class="field">
+              <label>Item Name *</label>
+              <input type="text" id="m-name" placeholder="e.g. AirPods Pro, Blue backpack" required />
+            </div>
+            <div class="field">
+              <label>Category *</label>
+              <select id="m-category" required>
+                <option value="" disabled selected>Select…</option>
+                <option>Clothing &amp; Apparel</option>
+                <option>Electronics</option>
+                <option>Books &amp; Stationery</option>
+                <option>Bags &amp; Backpacks</option>
+                <option>Sports Equipment</option>
+                <option>Jewelry &amp; Accessories</option>
+                <option>Keys</option>
+                <option>Water Bottles</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Description *</label>
+            <textarea id="m-desc" placeholder="Color, brand, stickers, scratches, what was inside…" required></textarea>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div class="field">
+              <label>Last Seen Location *</label>
+              <input type="text" id="m-location" placeholder="e.g. Gym, Library, Cafeteria" required />
+            </div>
+            <div class="field">
+              <label>Date Lost *</label>
+              <input type="date" id="m-date" required />
+            </div>
+          </div>
+          <div class="field">
+            <label>Your School Email *</label>
+            <input type="email" id="m-contact" placeholder="you@srds.org" required />
+          </div>
+          <button type="submit" class="btn-primary" style="margin-top:4px;">
+            ✨ Run Smart Match
+          </button>
+        </form>
+
+        <!-- Results section -->
+        <div id="match-results-section" style="display:none; margin-top:40px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+            <div style="font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600;">Match Results</div>
+            <span id="match-count-badge" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; background:var(--accent-dim); color:var(--accent); border:1px solid var(--accent-line); padding:3px 10px; border-radius:100px;"></span>
+          </div>
+          <div class="match-results" id="match-results-list" style="padding:0;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REPORT WIZARD VIEW ── -->
+    <div class="view" id="view-report">
+      <div class="wizard-wrap">
+        <div class="wizard-progress"><div class="wizard-bar" id="wizard-bar" style="width:33%;"></div></div>
+
+        <!-- Step 1: What is it? -->
+        <div class="wizard-step active" id="step-1">
+          <div class="stage-sub" style="margin-bottom:8px;">Step 1 of 3</div>
+          <div class="wizard-heading">What did you find?</div>
+          <div class="wizard-sub">Tap the category that best describes the item.</div>
+          <div class="category-grid">
+            <div class="cat-tile" data-cat="Electronics"><span class="emoji">📱</span><span class="label">Electronics</span></div>
+            <div class="cat-tile" data-cat="Bags &amp; Backpacks"><span class="emoji">🎒</span><span class="label">Bags &amp; Backpacks</span></div>
+            <div class="cat-tile" data-cat="Clothing &amp; Apparel"><span class="emoji">👕</span><span class="label">Clothing</span></div>
+            <div class="cat-tile" data-cat="Books &amp; Stationery"><span class="emoji">📚</span><span class="label">Books &amp; Stationery</span></div>
+            <div class="cat-tile" data-cat="Sports Equipment"><span class="emoji">⚽</span><span class="label">Sports Equipment</span></div>
+            <div class="cat-tile" data-cat="Jewelry &amp; Accessories"><span class="emoji">💍</span><span class="label">Jewelry</span></div>
+            <div class="cat-tile" data-cat="Keys"><span class="emoji">🔑</span><span class="label">Keys</span></div>
+            <div class="cat-tile" data-cat="Water Bottles"><span class="emoji">💧</span><span class="label">Water Bottles</span></div>
+            <div class="cat-tile" data-cat="Other"><span class="emoji">📦</span><span class="label">Other</span></div>
+          </div>
+          <div class="field">
+            <label>Item Name *</label>
+            <input type="text" id="r-name" placeholder="e.g. Blue Nike Backpack, AirPods Pro" />
+          </div>
+          <div class="wizard-nav">
+            <button class="btn-primary" onclick="wizardNext(1)" id="step1-next">Continue →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Where / When? -->
+        <div class="wizard-step" id="step-2">
+          <div class="stage-sub" style="margin-bottom:8px;">Step 2 of 3</div>
+          <div class="wizard-heading">Where &amp; when?</div>
+          <div class="wizard-sub">Pick the zone where you found it, or type a specific room.</div>
+          <div class="zone-grid" id="zone-grid">
+            <div class="zone-tile" data-zone="Main Hallway — near Lockers"><span class="zone-dot"></span><span class="zone-name">Main Hallway</span></div>
+            <div class="zone-tile" data-zone="Gymnasium"><span class="zone-dot"></span><span class="zone-name">Gymnasium</span></div>
+            <div class="zone-tile" data-zone="Library"><span class="zone-dot"></span><span class="zone-name">Library</span></div>
+            <div class="zone-tile" data-zone="Cafeteria"><span class="zone-dot"></span><span class="zone-name">Cafeteria</span></div>
+            <div class="zone-tile" data-zone="Athletic Fields"><span class="zone-dot"></span><span class="zone-name">Athletic Fields</span></div>
+            <div class="zone-tile" data-zone="Outdoor Lunch Area"><span class="zone-dot"></span><span class="zone-name">Outdoor Lunch Area</span></div>
+            <div class="zone-tile" data-zone="Science Wing"><span class="zone-dot"></span><span class="zone-name">Science Wing</span></div>
+            <div class="zone-tile" data-zone="Math Department"><span class="zone-dot"></span><span class="zone-name">Math Department</span></div>
+          </div>
+          <div class="field">
+            <label>Specific Location (optional)</label>
+            <input type="text" id="r-location" placeholder="e.g. Room 204, Bleachers Row C" />
+          </div>
+          <div class="field">
+            <label>Date Found *</label>
+            <input type="date" id="r-date" />
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <textarea id="r-desc" placeholder="Color, brand, what was inside, any markings…"></textarea>
+          </div>
+          <div class="wizard-nav">
+            <button class="btn-ghost" onclick="wizardBack(2)">← Back</button>
+            <button class="btn-primary" onclick="wizardNext(2)">Continue →</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Proof + submit -->
+        <div class="wizard-step" id="step-3">
+          <div class="stage-sub" style="margin-bottom:8px;">Step 3 of 3</div>
+          <div class="wizard-heading">One last thing.</div>
+          <div class="wizard-sub">A hidden detail helps us verify the owner and speeds up the process.</div>
+          <div class="field">
+            <label>Your Name *</label>
+            <input type="text" id="r-finder-name" placeholder="First Last" />
+          </div>
+          <div class="field">
+            <label>Your School Email *</label>
+            <input type="email" id="r-email" placeholder="you@srds.org" />
+          </div>
+          <div class="field">
+            <label>Photo (optional)</label>
+            <input type="file" id="r-photo" accept="image/*" style="padding:8px; cursor:pointer;" />
+          </div>
+          <div class="field">
+            <label>🔒 Hidden Detail — only owner would know</label>
+            <textarea id="r-proof" placeholder="e.g. scratch on bottom-right corner, name written inside in marker, specific stickers, what was in the bag…"></textarea>
+            <div class="proof-meter">
+              <div class="proof-bar-wrap"><div class="proof-bar" id="report-proof-bar"></div></div>
+              <div class="proof-label" id="report-proof-label">Start typing to see proof strength…</div>
+            </div>
+          </div>
+          <div class="wizard-nav">
+            <button class="btn-ghost" onclick="wizardBack(3)">← Back</button>
+            <button class="btn-primary" id="submit-report-btn" onclick="submitReport()">Submit Report ✓</button>
+          </div>
+        </div>
+
+        <!-- Success step -->
+        <div class="wizard-step" id="step-success">
+          <div style="text-align:center; padding:40px 0;">
+            <div style="width:72px; height:72px; background:linear-gradient(135deg,var(--accent),#7bc0ff); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 24px; box-shadow:0 8px 32px var(--accent-glow);">✓</div>
+            <div class="wizard-heading" style="margin-bottom:12px;">Item Reported!</div>
+            <p style="color:var(--white-40); margin-bottom:32px;">Your report will be reviewed by staff and published shortly.<br>Thank you for helping a Rebel get their stuff back.</p>
+            <button class="btn-primary" style="max-width:240px; margin:0 auto;" onclick="showView('radar')">Back to Live Radar</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── HEATMAP VIEW ── -->
+    <div class="view" id="view-heatmap">
+      <div class="heatmap-layout">
+        <div class="heatmap-map-wrap">
+          <div style="font-size:13px; font-weight:600; color:var(--white-70); margin-bottom:16px;">Campus Loss Map — dot size = items found there</div>
+          <svg id="heatmap-svg" viewBox="0 0 500 380" style="width:100%; height:auto;"></svg>
+        </div>
+        <div>
+          <div style="font-size:13px; font-weight:600; color:var(--white-70); margin-bottom:12px;">Breakdown by Location</div>
+          <div class="heatmap-list" id="heatmap-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /views -->
+</main>
+
+<!-- ══════════════════════════════════════════
+     INSPECTOR PANEL (right)
+══════════════════════════════════════════ -->
+<aside class="inspector" id="inspector" aria-label="Item inspector">
+  <div class="inspector-inner" id="inspector-inner">
+
+    <div class="inspector-header">
+      <div class="insp-category" id="insp-cat"></div>
+      <div class="insp-title" id="insp-name">Loading…</div>
+      <button class="inspector-close" onclick="closeInspector()" aria-label="Close inspector">✕</button>
+    </div>
+
+    <div class="insp-block" id="insp-photo-block">
+      <div id="insp-photo-wrap"></div>
+    </div>
+
+    <div class="insp-block" id="insp-meta-block">
+      <div class="detail-grid">
+        <div class="detail-cell"><div class="insp-label">Location</div><div class="insp-value" id="insp-loc">—</div></div>
+        <div class="detail-cell"><div class="insp-label">Date Found</div><div class="insp-value" id="insp-date">—</div></div>
+        <div class="detail-cell"><div class="insp-label">Unclaimed</div><div class="insp-value" id="insp-qty" style="color:var(--accent); font-weight:700; font-size:16px;">—</div></div>
+        <div class="detail-cell"><div class="insp-label">Status</div><div class="insp-value" id="insp-status">—</div></div>
+      </div>
+    </div>
+
+    <div class="insp-block" id="insp-spec-block">
+      <div class="insp-label">Specs</div>
+      <div class="spec-pills" id="insp-specs"></div>
+    </div>
+
+    <div class="insp-block" id="insp-desc-block">
+      <div class="insp-label">Description</div>
+      <div class="insp-value" id="insp-desc" style="line-height:1.6;"></div>
+    </div>
+
+    <div class="insp-block" id="insp-variants-block" style="display:none;">
+      <div class="insp-label" style="margin-bottom:8px;">Variants Found</div>
+      <table class="variants-table" id="insp-variants-table">
+        <thead><tr><th>#</th><th>Variant</th><th>Qty</th></tr></thead>
+        <tbody id="insp-variants-body"></tbody>
+      </table>
+    </div>
+
+    <div class="insp-block" id="insp-timeline-block">
+      <div class="insp-label" style="margin-bottom:12px;">Item Journey</div>
+      <div id="insp-timeline"></div>
+    </div>
+
+    <div class="insp-actions" id="insp-actions-block">
+      <button class="btn-primary" id="insp-claim-btn" onclick="">📬 Submit a Claim</button>
+      <button class="btn-ghost" id="insp-match-btn" onclick="">✨ Find Similar Items</button>
+    </div>
+
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════
+     CLAIM MODAL
+══════════════════════════════════════════ -->
+<div id="claim-modal" style="display:none; position:fixed; inset:0; z-index:9000; display:none; align-items:center; justify-content:center;">
+  <div style="position:absolute; inset:0; background:rgba(6,18,39,0.85); backdrop-filter:blur(12px);" onclick="closeClaimModal()"></div>
+  <div style="position:relative; z-index:1; background:rgba(10,22,48,0.98); border:1px solid var(--border); border-radius:20px; padding:32px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; backdrop-filter:blur(24px);">
+    <button onclick="closeClaimModal()" style="position:absolute; top:16px; right:16px; background:var(--white-05); border:1px solid var(--border); color:var(--white-40); border-radius:8px; width:28px; height:28px; cursor:pointer; font-size:14px;">✕</button>
+    <div class="stage-sub" style="margin-bottom:8px;">🔒 Private Proof Required</div>
+    <div style="font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600; margin-bottom:20px;" id="claim-item-name">Submit Claim</div>
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label>Full Name *</label><input type="text" id="claim-name" placeholder="First Last" /></div>
+      <div class="field"><label>School Email *</label><input type="email" id="claim-email" placeholder="you@srds.org" /></div>
+      <div class="field"><label>Student ID *</label><input type="text" id="claim-id" placeholder="e.g. 12345" /></div>
+      <div class="field">
+        <label>🔒 Hidden Detail Only Owner Would Know *</label>
+        <textarea id="claim-proof" rows="3" placeholder="Describe a specific detail — scratch, sticker, serial digits, what was inside, initials written somewhere…"></textarea>
+        <div class="proof-meter" style="margin-top:8px;">
+          <div class="proof-bar-wrap"><div class="proof-bar" id="claim-proof-bar"></div></div>
+          <div class="proof-label" id="claim-proof-label">Add a detail to calculate proof strength</div>
+        </div>
+      </div>
+      <div class="field"><label>Additional Notes</label><textarea id="claim-notes" rows="2" placeholder="Anything else staff should know…"></textarea></div>
+      <button class="btn-primary" onclick="submitClaim()">📬 Submit Claim</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<!-- Lock-on line canvas (drawn over everything) -->
+<canvas id="lockon-canvas" style="position:fixed; inset:0; pointer-events:none; z-index:40; width:100%; height:100%;"></canvas>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  SRDS MISSION CONTROL — SPA JavaScript
+// ════════════════════════════════════════════════════════
+
+// ── State ────────────────────────────────────────────────
+const state = {
+  view:        'radar',
+  items:       [],
+  searchQ:     '',
+  filterCat:   '',
+  selectedId:  null,
+  wizardCat:   '',
+  wizardZone:  '',
+  wizardStep:  1,
+  heatmapData: {},
+};
+
+// ── View Management ──────────────────────────────────────
+function showView(name) {
+  const views = document.querySelectorAll('.view');
+  const current = document.querySelector('.view.active');
+  if (current) {
+    current.classList.add('exiting');
+    setTimeout(() => current.classList.remove('active','exiting'), 280);
+  }
+  setTimeout(() => {
+    const next = document.getElementById('view-' + name);
+    if (next) next.classList.add('active');
+  }, 120);
+
+  // Update rail
+  document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+  const railBtn = document.getElementById('rail-' + name);
+  if (railBtn) railBtn.classList.add('active');
+
+  // Update header
+  const titles = {
+    radar:   ['Live Radar',      'SRDS Lost & Found'],
+    items:   ['Browse Items',    'Found Items Grid'],
+    match:   ['Smart Match',     'I Lost Something'],
+    report:  ['Report Wizard',   'Report a Found Item'],
+    heatmap: ['Campus Heatmap',  'Loss Visualization'],
+  };
+  const [sub, title] = titles[name] || ['', ''];
+  document.getElementById('stage-sub').textContent  = sub;
+  document.getElementById('stage-title').textContent = title;
+
+  state.view = name;
+
+  // Load data if needed
+  if (name === 'items') loadItems();
+  if (name === 'radar') setTimeout(renderRadar, 200);
+  if (name === 'heatmap') loadHeatmap();
+  if (name === 'report') { state.wizardStep = 1; showWizardStep(1); }
+}
+
+// ── Items data ───────────────────────────────────────────
+async function loadItems() {
+  const grid    = document.getElementById('items-grid');
+  const loading = document.getElementById('items-loading');
+  loading.style.display = 'grid';
+  grid.style.display    = 'none';
+
+  const q   = state.searchQ ? `&q=${encodeURIComponent(state.searchQ)}`   : '';
+  const cat = state.filterCat ? `&category=${encodeURIComponent(state.filterCat)}` : '';
+  const data = await fetch(`/api/items?${q}${cat}`).then(r => r.json()).catch(() => []);
+  state.items = data;
+
+  loading.style.display = 'none';
+  grid.style.display    = 'grid';
+  grid.innerHTML = data.length > 0 ? data.map(renderCard).join('') : `<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">🔍</div><h3>Nothing found</h3><p>Try a different search or category.</p></div>`;
+
+  if (state.view === 'radar') renderRadar();
+}
+
+function daysSince(dateStr) {
+  return Math.floor((new Date() - new Date(dateStr)) / 86400000);
+}
+
+function renderCard(item) {
+  const days = daysSince(item.date_found);
+  const dayClass = days <= 3 ? 'days-fresh' : days <= 14 ? 'days-mid' : 'days-old';
+  const dayLabel = days === 0 ? 'Today' : `${days}d ago`;
+  const imgHtml  = item.photo_url
+    ? `<img src="${item.photo_url}" alt="${item.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-fallback>${item.emoji||'📦'}</div>'">`
+    : `<div class="card-img-fallback">${item.emoji || '📦'}</div>`;
+  const specs = item.item_detail ? item.item_detail.split(' · ').slice(0,2).map(s => `<span class="spec-pill">${s}</span>`).join('') : '';
+  return `
+<article class="case-card" onclick="selectItem(${item.id})" data-id="${item.id}" role="button" tabindex="0" aria-label="View ${item.name}">
+  <div class="lock-ring" aria-hidden="true"></div>
+  <div class="card-img-wrap">
+    ${imgHtml}
+    <div class="card-img-overlay" aria-hidden="true"></div>
+    <span class="card-category-badge">${item.category}</span>
+    <span class="card-days-badge ${dayClass}">${dayLabel}</span>
+  </div>
+  <div class="card-body">
+    <div class="card-name">${item.name}</div>
+    <div class="card-meta">
+      <span>📍 ${item.location}</span>
+      <span>📅 ${item.date_found}</span>
+    </div>
+    ${specs ? `<div class="spec-pills" style="margin-bottom:8px;">${specs}</div>` : ''}
+    <div class="card-desc">${(item.description||'').slice(0,80)}${item.description?.length > 80 ? '…' : ''}</div>
+    <div class="card-qty-bar">
+      <span><span class="qty-number">${item.quantity || 1}</span> unclaimed item${item.quantity !== 1 ? 's' : ''}</span>
+      <span style="font-size:10px; font-weight:700; color:${item.quantity > 1 ? 'var(--warning)' : 'var(--success)'};">${item.quantity > 1 ? '● Multiple' : '● Available'}</span>
+    </div>
+  </div>
+</article>`;
+}
+
+// ── Inspector Panel ──────────────────────────────────────
+async function selectItem(id) {
+  state.selectedId = id;
+
+  // Lock-on animation on card
+  const card = document.querySelector(`.case-card[data-id="${id}"]`);
+  document.querySelectorAll('.case-card').forEach(c => c.classList.remove('locked-on'));
+  if (card) {
+    card.classList.add('locked-on');
+    drawLockOnLine(card);
+  }
+
+  openInspector();
+  await loadInspector(id);
+}
+
+function openInspector() {
+  document.getElementById('inspector').classList.add('open');
+}
+
+function closeInspector() {
+  document.getElementById('inspector').classList.remove('open');
+  document.querySelectorAll('.case-card').forEach(c => c.classList.remove('locked-on'));
+  clearLockOnLine();
+  state.selectedId = null;
+}
+
+async function loadInspector(id) {
+  // Reset blocks
+  document.querySelectorAll('.insp-block').forEach(b => b.classList.remove('revealed'));
+
+  const data = await fetch(`/api/item/${id}`).then(r => r.json()).catch(() => null);
+  if (!data) return;
+
+  // Fill content
+  document.getElementById('insp-cat').textContent  = data.category;
+  document.getElementById('insp-name').textContent = data.name;
+  document.getElementById('insp-loc').textContent  = data.location;
+  document.getElementById('insp-date').textContent = data.date_found;
+  document.getElementById('insp-qty').textContent  = `${data.quantity || 1} item${data.quantity !== 1 ? 's' : ''}`;
+  document.getElementById('insp-status').textContent = data.status || 'approved';
+  document.getElementById('insp-desc').textContent  = data.description || '';
+
+  // Photo
+  const photoWrap = document.getElementById('insp-photo-wrap');
+  if (data.photo_url) {
+    photoWrap.innerHTML = `<img class="insp-photo" src="${data.photo_url}" alt="${data.name}" onerror="this.outerHTML='<div class=insp-photo-fallback>${data.emoji||'📦'}</div>'" />`;
+  } else {
+    photoWrap.innerHTML = `<div class="insp-photo-fallback">${data.emoji || '📦'}</div>`;
+  }
+
+  // Specs
+  const specsEl = document.getElementById('insp-specs');
+  if (data.item_detail) {
+    specsEl.innerHTML = data.item_detail.split(' · ').map(s => `<span class="spec-pill">${s}</span>`).join('');
+    document.getElementById('insp-spec-block').style.display = '';
+  } else {
+    document.getElementById('insp-spec-block').style.display = 'none';
+  }
+
+  // Variants
+  const variantBlock = document.getElementById('insp-variants-block');
+  if (data.variants && data.variants.length > 0) {
+    variantBlock.style.display = '';
+    document.getElementById('insp-variants-body').innerHTML = data.variants.map((v, i) =>
+      `<tr><td style="color:var(--white-40);">${i+1}</td><td>${v.variant}</td><td><span class="qty-circle">${v.quantity}</span></td></tr>`
+    ).join('');
+  } else {
+    variantBlock.style.display = 'none';
+  }
+
+  // Timeline
+  const events = data.events || [];
+  const tlSteps = [
+    { icon:'🔍', label:'Item Discovered', done: true,    time: data.date_found },
+    { icon:'✅', label:'Reviewed by Staff', done: events.some(e => e.event==='approved'), time: events.find(e=>e.event==='approved')?.timestamp },
+    { icon:'📬', label:'Claim Submitted', done: data.claim_count > 0, time: events.find(e=>e.event==='claim_submitted')?.timestamp },
+    { icon:'🎉', label:'Returned to Owner', done: data.status==='claimed', time: events.find(e=>e.event==='returned')?.timestamp },
+  ];
+  document.getElementById('insp-timeline').innerHTML = tlSteps.map(s => `
+    <div class="timeline-item">
+      <div class="tl-dot ${s.done ? 'done' : 'pending'}">${s.icon}</div>
+      <div class="tl-content">
+        <div class="tl-label" style="color:${s.done ? 'var(--white)' : 'var(--white-40)'};">${s.label}</div>
+        <div class="tl-time">${s.done && s.time ? s.time : s.done ? 'Completed' : 'Pending'}</div>
+      </div>
+    </div>`).join('');
+
+  // Wire claim button
+  document.getElementById('insp-claim-btn').onclick = () => openClaimModal(id, data.name);
+  document.getElementById('insp-match-btn').onclick = () => {
+    document.getElementById('m-name').value     = data.name;
+    document.getElementById('m-desc').value     = data.description || '';
+    const catOpt = [...document.getElementById('m-category').options].find(o => o.value === data.category);
+    if (catOpt) catOpt.selected = true;
+    showView('match');
+  };
+
+  // Staggered reveal
+  const blocks = document.querySelectorAll('.insp-block');
+  blocks.forEach((b, i) => setTimeout(() => b.classList.add('revealed'), 60 + i * 70));
+}
+
+// ── Lock-on Line Animation ───────────────────────────────
+function drawLockOnLine(card) {
+  const canvas = document.getElementById('lockon-canvas');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const cardRect = card.getBoundingClientRect();
+  const inspector = document.getElementById('inspector');
+  const inspRect  = inspector.getBoundingClientRect();
+
+  const startX = cardRect.right;
+  const startY = cardRect.top + cardRect.height / 2;
+  const endX   = inspRect.left + 20;
+  const endY   = inspRect.top + 80;
+
+  let progress = 0;
+  const draw = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cx  = startX + (endX - startX) * progress;
+    const cy  = startY + (endY - startY) * progress;
+    const grad = ctx.createLinearGradient(startX, startY, cx, cy);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(0.4, 'rgba(90,167,255,0.6)');
+    grad.addColorStop(1, 'rgba(90,167,255,0.9)');
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(cx, cy);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+    // Glow dot at tip
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(90,167,255,0.9)';
+    ctx.fill();
+
+    progress += 0.08;
+    if (progress < 1) requestAnimationFrame(draw);
+    else setTimeout(clearLockOnLine, 400);
+  };
+  requestAnimationFrame(draw);
+}
+
+function clearLockOnLine() {
+  const canvas = document.getElementById('lockon-canvas');
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ── Radar Canvas ─────────────────────────────────────────
+let radarAnimFrame;
+const radarNodes = [];
+
+function renderRadar() {
+  const canvas = document.getElementById('radar-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W   = canvas.parentElement.offsetWidth;
+  const H   = canvas.parentElement.offsetHeight;
+  canvas.width  = W;
+  canvas.height = H;
+
+  // Build nodes from items
+  radarNodes.length = 0;
+  (state.items.length ? state.items : []).forEach((item, i) => {
+    const angle  = (i / Math.max(state.items.length, 1)) * Math.PI * 2 - Math.PI / 2;
+    const radius = 80 + Math.random() * (Math.min(W, H) * 0.3);
+    radarNodes.push({
+      id:    item.id,
+      name:  item.name,
+      emoji: item.emoji || '📦',
+      x:     W / 2 + Math.cos(angle) * radius,
+      y:     H / 2 + Math.sin(angle) * radius,
+      vx:    (Math.random() - 0.5) * 0.3,
+      vy:    (Math.random() - 0.5) * 0.3,
+      r:     8 + Math.min((item.quantity || 1) * 2, 14),
+      pulse: Math.random() * Math.PI * 2,
+      category: item.category,
+    });
+  });
+
+  // If no items yet, load them
+  if (!state.items.length) {
+    fetch('/api/items').then(r => r.json()).then(data => {
+      state.items = data;
+      renderRadar();
+    });
+    return;
+  }
+
+  // Color by category
+  const catColors = {
+    'Electronics':           '#5aa7ff',
+    'Bags & Backpacks':      '#a78bfa',
+    'Clothing & Apparel':    '#f472b6',
+    'Books & Stationery':    '#34d399',
+    'Sports Equipment':      '#fbbf24',
+    'Jewelry & Accessories': '#fb923c',
+    'Keys':                  '#e879f9',
+    'Water Bottles':         '#22d3ee',
+    'Other':                 '#94a3b8',
+  };
+
+  let hoveredNode = null;
+
+  canvas.onmousemove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    hoveredNode = radarNodes.find(n => Math.hypot(n.x - mx, n.y - my) < n.r + 8) || null;
+    canvas.style.cursor = hoveredNode ? 'pointer' : 'crosshair';
+  };
+
+  canvas.onclick = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const hit = radarNodes.find(n => Math.hypot(n.x - mx, n.y - my) < n.r + 10);
+    if (hit) {
+      if (state.view === 'radar') {
+        openInspector();
+        loadInspector(hit.id);
+        state.selectedId = hit.id;
+      }
+    }
+  };
+
+  if (radarAnimFrame) cancelAnimationFrame(radarAnimFrame);
+
+  const animate = () => {
+    ctx.clearRect(0, 0, W, H);
+
+    // Background rings
+    for (let r = 60; r < Math.min(W, H) * 0.55; r += 60) {
+      ctx.beginPath();
+      ctx.arc(W/2, H/2, r, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(90,167,255,0.05)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Radar sweep line
+    const sweep = (Date.now() / 3000) % (Math.PI * 2);
+    const sweepGrad = ctx.createConicalGradient ? null : null;
+    ctx.save();
+    ctx.translate(W/2, H/2);
+    ctx.rotate(sweep);
+    const sg = ctx.createLinearGradient(0, 0, Math.min(W,H)*0.45, 0);
+    sg.addColorStop(0, 'rgba(90,167,255,0.5)');
+    sg.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0, 0, Math.min(W,H)*0.45, -0.3, 0);
+    ctx.closePath();
+    ctx.fillStyle = sg;
+    ctx.fill();
+    ctx.restore();
+
+    // Nodes
+    radarNodes.forEach(n => {
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < n.r || n.x > W - n.r) n.vx *= -1;
+      if (n.y < n.r || n.y > H - n.r) n.vy *= -1;
+      n.pulse += 0.04;
+
+      const isHovered  = hoveredNode === n;
+      const isSelected = state.selectedId === n.id;
+      const color      = catColors[n.category] || '#5aa7ff';
+      const pulseMod   = isHovered || isSelected ? 1 + Math.sin(n.pulse) * 0.3 : 1;
+
+      // Outer glow
+      if (isHovered || isSelected) {
+        const grd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 3.5);
+        grd.addColorStop(0, color.replace('#','rgba(').replace(/^rgba\(([^)]+)\)$/, (_,v) => `rgba(${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)},0.3)`) + ')');
+        grd.addColorStop(1, 'transparent');
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r * 3.5, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(90,167,255,0.15)`;
+        ctx.fill();
+      }
+
+      // Pulse ring
+      const pulseR = n.r * (1.4 + Math.sin(n.pulse) * 0.5);
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, pulseR * pulseMod, 0, Math.PI*2);
+      ctx.strokeStyle = color + '40';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Main dot
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r * pulseMod, 0, Math.PI*2);
+      ctx.fillStyle = isSelected ? color : color + 'cc';
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = isSelected ? 2 : 1;
+      ctx.stroke();
+
+      // Label on hover
+      if (isHovered || isSelected) {
+        ctx.font = '500 12px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(234,242,255,0.9)';
+        ctx.textAlign = 'center';
+        ctx.fillText(n.name.length > 20 ? n.name.slice(0,18)+'…' : n.name, n.x, n.y - n.r - 8);
+      }
+    });
+
+    radarAnimFrame = requestAnimationFrame(animate);
+  };
+  animate();
+}
+
+// ── Heatmap ──────────────────────────────────────────────
+async function loadHeatmap() {
+  const data = await fetch('/api/heatmap').then(r => r.json()).catch(() => ({}));
+  state.heatmapData = data;
+
+  // SVG map
+  const svg = document.getElementById('heatmap-svg');
+  svg.innerHTML = `
+    <defs>
+      <pattern id="hgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(90,167,255,0.04)" stroke-width="0.5"/>
+      </pattern>
+    </defs>
+    <rect width="500" height="380" fill="url(#hgrid)"/>
+    <!-- Buildings -->
+    <rect x="20" y="20" width="140" height="90" rx="6" fill="rgba(14,28,60,0.6)" stroke="rgba(90,167,255,0.3)" stroke-width="1.5"/>
+    <text x="90" y="63" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="rgba(234,242,255,0.7)" font-weight="600">Main Hall</text>
+    <text x="90" y="80" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="rgba(234,242,255,0.35)">Office · Lower School</text>
+    <rect x="180" y="20" width="150" height="90" rx="6" fill="rgba(14,28,60,0.6)" stroke="rgba(90,167,255,0.3)" stroke-width="1.5"/>
+    <text x="255" y="63" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="rgba(234,242,255,0.7)" font-weight="600">North Hall</text>
+    <text x="255" y="80" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="rgba(234,242,255,0.35)">Gym · Cafeteria · CIE</text>
+    <rect x="350" y="20" width="130" height="90" rx="6" fill="rgba(14,28,60,0.6)" stroke="rgba(90,167,255,0.3)" stroke-width="1.5"/>
+    <text x="415" y="63" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="rgba(234,242,255,0.7)" font-weight="600">Alford Hall</text>
+    <rect x="20" y="135" width="130" height="85" rx="6" fill="rgba(14,28,60,0.6)" stroke="rgba(90,167,255,0.3)" stroke-width="1.5"/>
+    <text x="85" y="178" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="rgba(234,242,255,0.7)" font-weight="600">Library</text>
+    <rect x="170" y="135" width="310" height="100" rx="6" fill="rgba(14,28,60,0.4)" stroke="rgba(90,167,255,0.15)" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="325" y="192" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="rgba(234,242,255,0.4)">Athletic Fields</text>
+    <rect x="20" y="260" width="460" height="70" rx="6" fill="rgba(14,28,60,0.3)" stroke="rgba(90,167,255,0.1)" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="250" y="300" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="rgba(234,242,255,0.3)">Outdoor Lunch Area</text>
+    ${buildHeatmapDots(data)}
+    <!-- Legend -->
+    <circle cx="26" cy="358" r="6" fill="rgba(248,113,113,0.8)"/>
+    <text x="36" y="362" font-family="Inter,sans-serif" font-size="9" fill="rgba(234,242,255,0.4)">High</text>
+    <circle cx="68" cy="358" r="5" fill="rgba(251,191,36,0.8)"/>
+    <text x="77" y="362" font-family="Inter,sans-serif" font-size="9" fill="rgba(234,242,255,0.4)">Medium</text>
+    <circle cx="120" cy="358" r="3" fill="rgba(90,167,255,0.8)"/>
+    <text x="128" y="362" font-family="Inter,sans-serif" font-size="9" fill="rgba(234,242,255,0.4)">Low</text>
+  `;
+
+  // List
+  const sorted = Object.entries(data).sort((a,b) => b[1].total - a[1].total);
+  const max = sorted[0]?.[1]?.total || 1;
+  document.getElementById('heatmap-list').innerHTML = sorted.map(([loc, d]) => `
+    <div class="heatmap-row">
+      <div class="heatmap-row-name">${loc}</div>
+      <div class="heatmap-bar-wrap"><div class="heatmap-bar" style="width:${(d.total/max*100).toFixed(0)}%"></div></div>
+      <span class="heatmap-count">${d.total} item${d.total !== 1 ? 's' : ''}</span>
+    </div>`).join('') || '<div class="empty"><div class="empty-icon">📍</div><h3>No data yet</h3></div>';
+}
+
+function buildHeatmapDots(data) {
+  const locationMap = {
+    main:     ['main hallway','main hall','front office','entrance','lockers'],
+    gym:      ['gym','bleacher','gymnasium'],
+    cafe:     ['cafeteria','cafe','table'],
+    library:  ['library','study','charging'],
+    athletic: ['athletic','field','equipment'],
+    outdoor:  ['outdoor','lunch area','bench'],
+    alford:   ['alford','science','math','room 2','room 3','upper school'],
+  };
+  const coords = { main:[90,110], gym:[220,100], cafe:[290,85], library:[85,178], athletic:[325,185], outdoor:[250,295], alford:[415,110] };
+  const counts = {};
+  Object.entries(data).forEach(([loc, d]) => {
+    const lk = loc.toLowerCase();
+    Object.entries(locationMap).forEach(([key, kws]) => {
+      if (kws.some(kw => lk.includes(kw))) counts[key] = (counts[key]||0) + d.total;
+    });
+  });
+  const max = Math.max(...Object.values(counts), 1);
+  return Object.entries(coords).map(([key, [cx,cy]]) => {
+    const c = counts[key] || 0;
+    if (!c) return '';
+    const r     = 6 + (c/max)*18;
+    const color = c/max > 0.7 ? 'rgba(248,113,113,0.8)' : c/max > 0.35 ? 'rgba(251,191,36,0.8)' : 'rgba(90,167,255,0.8)';
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="0.85">
+      <animate attributeName="r" values="${r};${r*1.2};${r}" dur="${1.5+Math.random()}s" repeatCount="indefinite"/>
+    </circle>`;
+  }).join('');
+}
+
+// ── Wizard ────────────────────────────────────────────────
+function showWizardStep(n) {
+  document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+  const step = document.getElementById('step-' + n);
+  if (step) step.classList.add('active');
+  const barW = n === 'success' ? '100%' : `${(n/3)*100}%`;
+  document.getElementById('wizard-bar').style.width = barW;
+  state.wizardStep = n;
+}
+
+function wizardNext(from) {
+  if (from === 1) {
+    if (!state.wizardCat) { toast('Please select a category first.', 'error'); return; }
+    if (!document.getElementById('r-name').value.trim()) { toast('Please enter an item name.', 'error'); return; }
+    showWizardStep(2);
+    document.getElementById('r-date').max = new Date().toISOString().split('T')[0];
+  } else if (from === 2) {
+    const loc  = state.wizardZone || document.getElementById('r-location').value.trim();
+    const date = document.getElementById('r-date').value;
+    if (!loc)  { toast('Please select a location or enter one.', 'error'); return; }
+    if (!date) { toast('Please select a date.', 'error'); return; }
+    showWizardStep(3);
+  }
+}
+
+function wizardBack(from) {
+  showWizardStep(from - 1);
+}
+
+document.querySelectorAll('.cat-tile').forEach(tile => {
+  tile.addEventListener('click', () => {
+    document.querySelectorAll('.cat-tile').forEach(t => t.classList.remove('selected'));
+    tile.classList.add('selected');
+    state.wizardCat = tile.dataset.cat;
+  });
+});
+
+document.querySelectorAll('.zone-tile').forEach(tile => {
+  tile.addEventListener('click', () => {
+    document.querySelectorAll('.zone-tile').forEach(t => t.classList.remove('selected'));
+    tile.classList.add('selected');
+    state.wizardZone = tile.dataset.zone;
+    const locInput = document.getElementById('r-location');
+    if (!locInput.value) locInput.value = tile.dataset.zone;
+  });
+});
+
+// Proof bar for report wizard
+document.getElementById('r-proof')?.addEventListener('input', e => updateProofBar(e.target.value, 'report-proof-bar', 'report-proof-label'));
+document.getElementById('claim-proof')?.addEventListener('input', e => updateProofBar(e.target.value, 'claim-proof-bar', 'claim-proof-label'));
+
+const proofKeywords = ['serial','number','sticker','scratch','crack','initials','broken','dent','tag','wrote','name','code','charm','inside','pocket','keychain','sharpie','marker','missing','chipped','strap','digits','model','color','pattern'];
+function updateProofBar(text, barId, labelId) {
+  let s = Math.min(40, Math.floor(text.trim().length / 4));
+  proofKeywords.forEach(kw => { if (text.toLowerCase().includes(kw)) s += 8; });
+  s = Math.min(s, 100);
+  const bar = document.getElementById(barId);
+  const label = document.getElementById(labelId);
+  bar.style.width = s + '%';
+  if (s < 30)      { bar.style.background='var(--error)';   label.textContent=`${s}% — Weak, be more specific`; label.style.color='var(--error)'; }
+  else if (s < 60) { bar.style.background='var(--warning)'; label.textContent=`${s}% — Getting there…`;         label.style.color='var(--warning)'; }
+  else             { bar.style.background='var(--success)'; label.textContent=`${s}% — Strong proof ✓`;          label.style.color='var(--success)'; }
+}
+
+async function submitReport() {
+  const name  = document.getElementById('r-name').value.trim();
+  const loc   = state.wizardZone || document.getElementById('r-location').value.trim();
+  const date  = document.getElementById('r-date').value;
+  const finder = document.getElementById('r-finder-name').value.trim();
+  const email  = document.getElementById('r-email').value.trim();
+
+  if (!finder || !email) { toast('Please fill in your name and email.', 'error'); return; }
+
+  const btn = document.getElementById('submit-report-btn');
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+
+  // Use multipart form for photo upload support
+  const form = new FormData();
+  form.append('name', name);
+  form.append('category', state.wizardCat);
+  form.append('description', document.getElementById('r-desc').value);
+  form.append('location', loc);
+  form.append('date_found', date);
+  const photo = document.getElementById('r-photo').files[0];
+  if (photo) form.append('photo', photo);
+
+  try {
+    const res = await fetch('/report', { method:'POST', body: form });
+    showWizardStep('success');
+    state.items = []; // clear cache so radar reloads
+    toast('Item reported! Awaiting staff review.', 'success');
+  } catch(e) {
+    toast('Submission failed. Please try again.', 'error');
+    btn.textContent = 'Submit Report ✓'; btn.disabled = false;
+  }
+}
+
+// ── Smart Match ───────────────────────────────────────────
+document.getElementById('match-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.textContent = '⏳ Searching…'; btn.disabled = true;
+
+  const payload = {
+    name:        document.getElementById('m-name').value.trim(),
+    category:    document.getElementById('m-category').value,
+    description: document.getElementById('m-desc').value.trim(),
+    location:    document.getElementById('m-location').value.trim(),
+    date_lost:   document.getElementById('m-date').value,
+    contact:     document.getElementById('m-contact').value.trim(),
+  };
+
+  // Save report then run match
+  await fetch('/api/lost_report', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+  const result = await fetch('/api/smart_match', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }).then(r=>r.json());
+
+  btn.textContent = '✨ Run Smart Match'; btn.disabled = false;
+
+  const section = document.getElementById('match-results-section');
+  section.style.display = 'block';
+  document.getElementById('match-count-badge').textContent = `${result.length} match${result.length!==1?'es':''}`;
+
+  if (!result.length) {
+    document.getElementById('match-results-list').innerHTML = '<div class="empty"><div class="empty-icon">🤷</div><h3>No matches found</h3><p>Your report is saved — we\'ll notify you if a match comes in.</p></div>';
+    return;
+  }
+
+  document.getElementById('match-results-list').innerHTML = result.map(m => {
+    const scoreColor = m.confidence==='High' ? 'var(--success)' : m.confidence==='Medium' ? 'var(--warning)' : 'var(--accent)';
+    const pct = m.score * 1.634;
+    return `
+<div class="match-card" onclick="selectItem(${m.item.id}); showView('items');">
+  <div class="match-thumb">
+    ${m.photo_url
+      ? `<img src="${m.photo_url}" alt="${m.item.name}" onerror="this.outerHTML='<div class=match-thumb-fallback>${m.emoji||'📦'}</div>'"/>`
+      : `<div class="match-thumb-fallback">${m.emoji||'📦'}</div>`}
+  </div>
+  <div class="match-body">
+    <div class="match-name">${m.item.name}</div>
+    <div class="match-meta">📍 ${m.item.location} · 📅 ${m.item.date_found}</div>
+    <div class="match-reasons">${m.reasons.map(r=>`<span class="reason-pill">✓ ${r}</span>`).join('')}</div>
+  </div>
+  <div class="match-score">
+    <div class="score-ring">
+      <svg width="52" height="52" viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="20" fill="none" stroke="var(--border)" stroke-width="4"/>
+        <circle cx="26" cy="26" r="20" fill="none" stroke="${scoreColor}" stroke-width="4"
+          stroke-dasharray="${pct} 126" stroke-linecap="round"/>
+      </svg>
+      <div class="score-num">${m.score}%</div>
+    </div>
+    <div class="score-conf" style="color:${scoreColor};">${m.confidence}</div>
+  </div>
+</div>`;}).join('');
+});
+
+// ── Claim Modal ───────────────────────────────────────────
+let claimItemId = null;
+function openClaimModal(id, name) {
+  claimItemId = id;
+  document.getElementById('claim-item-name').textContent = `Claim: ${name}`;
+  document.getElementById('claim-modal').style.display = 'flex';
+}
+function closeClaimModal() {
+  document.getElementById('claim-modal').style.display = 'none';
+  claimItemId = null;
+}
+
+async function submitClaim() {
+  const name  = document.getElementById('claim-name').value.trim();
+  const email = document.getElementById('claim-email').value.trim();
+  const sid   = document.getElementById('claim-id').value.trim();
+  const proof = document.getElementById('claim-proof').value.trim();
+
+  if (!name || !email || !sid || !proof) { toast('Please fill in all required fields.', 'error'); return; }
+
+  const btn = document.querySelector('#claim-modal .btn-primary');
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+
+  const res = await fetch('/api/claim', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ item_id:claimItemId, claimant:name, email, student_id:sid, proof_detail:proof, message:document.getElementById('claim-notes').value })
+  }).then(r=>r.json()).catch(()=>({error:'Network error'}));
+
+  btn.textContent = '📬 Submit Claim'; btn.disabled = false;
+
+  if (res.success) {
+    closeClaimModal();
+    toast(`Claim submitted! Proof score: ${res.proof_score}/100`, 'success');
+    ['claim-name','claim-email','claim-id','claim-proof','claim-notes'].forEach(id => document.getElementById(id).value='');
+  } else {
+    toast(res.error || 'Submission failed.', 'error');
+  }
+}
+
+// ── Search & Filter ───────────────────────────────────────
+let searchDebounce;
+document.getElementById('search-input').addEventListener('input', e => {
+  state.searchQ = e.target.value.trim();
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    if (state.view === 'items' || state.view === 'radar') loadItems();
+  }, 300);
+});
+
+document.getElementById('filter-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  state.filterCat = chip.dataset.cat;
+  loadItems();
+});
+
+// Ctrl+K focus search
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('search-input').focus();
+  }
+  if (e.key === 'Escape') {
+    closeInspector();
+    closeClaimModal();
+  }
+});
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg, type='success') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type==='success'?'✓':'⚠'}</span><span>${msg}</span>`;
+  document.getElementById('toast-stack').appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(40px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 3500);
+}
+
+// ── Init ──────────────────────────────────────────────────
+document.getElementById('m-date').max = new Date().toISOString().split('T')[0];
+loadItems(); // preload items for radar
+showView('radar');
+</script>
+</body>
+</html>

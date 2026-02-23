@@ -407,10 +407,13 @@ def allowed_file(filename):
 
 @app.route("/")
 def index():
+    return render_template("spa.html")
+
+
+@app.route("/classic")
+def classic_index():
     db = get_db()
-    recent_rows = db.execute(
-        "SELECT * FROM items WHERE status='approved' ORDER BY id DESC LIMIT 6"
-    ).fetchall()
+    recent_rows = db.execute("SELECT * FROM items WHERE status='approved' ORDER BY id DESC LIMIT 6").fetchall()
     total   = db.execute("SELECT COUNT(*) FROM items WHERE status='approved'").fetchone()[0]
     claimed = db.execute("SELECT COUNT(*) FROM items WHERE status='claimed'").fetchone()[0]
     return render_template("index.html", recent=enrich_items(recent_rows), total=total, claimed=claimed)
@@ -627,6 +630,125 @@ def timeline(item_id):
     ).fetchall()
     return render_template("timeline.html", item=item, events=events, claims=claims)
 
+
+
+
+# ─── SPA JSON APIs ────────────────────────────────────────────────────────────
+
+@app.route("/api/items")
+def api_items():
+    db       = get_db()
+    search   = request.args.get("q", "").strip()
+    category = request.args.get("category", "").strip()
+    query    = "SELECT * FROM items WHERE status='approved'"
+    params   = []
+    if search:
+        query += " AND (name LIKE ? OR description LIKE ? OR location LIKE ?)"
+        params += [f"%{search}%"] * 3
+    if category:
+        query += " AND category=?"
+        params.append(category)
+    query += " ORDER BY id DESC LIMIT 40"
+    rows  = db.execute(query, params).fetchall()
+    items = enrich_items(rows)
+    # Attach variant counts for AirPods-style items
+    for item in items:
+        variants = db.execute(
+            "SELECT * FROM item_variants WHERE item_id=?", (item["id"],)
+        ).fetchall()
+        item["variants"] = [dict(v) for v in variants]
+    return jsonify(items)
+
+@app.route("/api/item/<int:item_id>")
+def api_item(item_id):
+    db  = get_db()
+    row = db.execute("SELECT * FROM items WHERE id=?", (item_id,)).fetchone()
+    if not row:
+        return jsonify({"error": "Not found"}), 404
+    item = enrich_items([row])[0]
+    variants = db.execute("SELECT * FROM item_variants WHERE item_id=? ORDER BY id", (item_id,)).fetchall()
+    item["variants"] = [dict(v) for v in variants]
+    events   = db.execute("SELECT * FROM item_events WHERE item_id=? ORDER BY timestamp", (item_id,)).fetchall()
+    claims   = db.execute("SELECT * FROM claims WHERE item_id=? ORDER BY submitted", (item_id,)).fetchall()
+    item["events"] = [dict(e) for e in events]
+    item["claim_count"] = len(claims)
+    return jsonify(item)
+
+@app.route("/api/smart_match", methods=["POST"])
+def api_smart_match():
+    data     = request.get_json() or {}
+    name     = data.get("name", "")
+    category = data.get("category", "")
+    desc     = data.get("description", "")
+    location = data.get("location", "")
+    date     = data.get("date_lost", datetime.now().strftime("%Y-%m-%d"))
+    db       = get_db()
+    matches  = smart_match(name, category, desc, location, date, db)
+    return jsonify(matches)
+
+@app.route("/api/claim", methods=["POST"])
+def api_claim():
+    data        = request.get_json() or {}
+    item_id     = data.get("item_id")
+    claimant    = data.get("claimant", "").strip()
+    email       = data.get("email", "").strip()
+    student_id  = data.get("student_id", "").strip()
+    proof_detail= data.get("proof_detail", "").strip()
+    message     = data.get("message", "").strip()
+
+    if not all([item_id, claimant, email, student_id, proof_detail]):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    keywords = ["serial","number","sticker","scratch","crack","initials","broken",
+                "dent","tag","wrote","name","code","charm","inside","pocket",
+                "keychain","sharpie","marker","missing","chipped","strap","digits","model","color"]
+    proof_score = min(40, len(proof_detail) // 3)
+    for kw in keywords:
+        if kw in proof_detail.lower(): proof_score += 8
+    proof_score = min(proof_score, 100)
+
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    db = get_db()
+    db.execute(
+        "INSERT INTO claims (item_id, claimant, email, student_id, message, proof_detail, proof_score, submitted) VALUES (?,?,?,?,?,?,?,?)",
+        (item_id, claimant, email, student_id, message, proof_detail, proof_score, now_str)
+    )
+    db.execute(
+        "INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
+        (item_id, "claim_submitted", f"Claim by {claimant} (proof score: {proof_score})", now_str)
+    )
+    db.commit()
+    return jsonify({"success": True, "proof_score": proof_score})
+
+@app.route("/api/lost_report", methods=["POST"])
+def api_lost_report():
+    data = request.get_json() or {}
+    required = ["name","category","description","location","date_lost","contact"]
+    if not all(data.get(k,"").strip() for k in required):
+        return jsonify({"error": "Missing fields"}), 400
+    db = get_db()
+    db.execute(
+        "INSERT INTO lost_reports (name, category, description, location, date_lost, contact, submitted) VALUES (?,?,?,?,?,?,?)",
+        (data["name"], data["category"], data["description"], data["location"],
+         data["date_lost"], data["contact"], datetime.now().strftime("%Y-%m-%d %H:%M"))
+    )
+    db.commit()
+    matches = smart_match(data["name"], data["category"], data["description"],
+                          data["location"], data["date_lost"], db)
+    return jsonify({"success": True, "matches": matches})
+
+@app.route("/api/heatmap")
+def api_heatmap():
+    db   = get_db()
+    rows = db.execute(
+        "SELECT location, category, COUNT(*) as count FROM items WHERE status='approved' GROUP BY location, category"
+    ).fetchall()
+    from collections import defaultdict
+    loc_data = defaultdict(lambda: {"total": 0, "categories": {}})
+    for r in rows:
+        loc_data[r["location"]]["total"] += r["count"]
+        loc_data[r["location"]]["categories"][r["category"]] = r["count"]
+    return jsonify(dict(loc_data))
 
 
 # ---------- Admin Routes ----------
