@@ -13,9 +13,9 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = "srds_lost_found_rebels_2026"
 
-UPLOAD_FOLDER = os.path.join("static", "uploads")
+UPLOAD_FOLDER = os.path.join(os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "/tmp"), "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
-DATABASE = "lostandfound.db"
+DATABASE = os.path.join(os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "/tmp"), "lostandfound.db")
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -351,6 +351,9 @@ def api_search():
     return jsonify([dict(r) for r in rows])
 
 
+# Initialize DB on startup (works on Railway too)
+init_db()
+
 if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host="0.0.0.0", port=port)
