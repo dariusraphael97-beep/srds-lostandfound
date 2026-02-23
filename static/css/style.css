@@ -186,7 +186,7 @@ nav.scrolled {
     radial-gradient(ellipse 50% 70% at 90% 20%, rgba(74,127,212,0.22) 0%, transparent 55%),
     radial-gradient(ellipse 40% 40% at 50% 100%, rgba(45,91,227,0.18) 0%, transparent 50%),
     var(--navy);
-  animation: bgShift 10s ease-in-out infinite alternate;
+  /* bgShift animation removed — caused memory leak */
 }
 @keyframes bgShift {
   from { opacity: 1; }
@@ -197,6 +197,7 @@ nav.scrolled {
   position: absolute; border-radius: 50%;
   animation: floatUp linear infinite;
   background: white;
+  will-change: transform, opacity;
 }
 @keyframes floatUp {
   0%   { transform: translateY(110vh) translateX(0) rotate(0deg); opacity: 0; }
@@ -563,6 +564,7 @@ footer .accent-text { color: var(--accent); }
   display: flex;
   white-space: nowrap;
   animation: tickerScroll 40s linear infinite;
+  will-change: transform;
   font-size: 0.78rem;
   color: var(--white-70);
 }

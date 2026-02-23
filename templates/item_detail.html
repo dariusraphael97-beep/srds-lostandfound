@@ -19,7 +19,7 @@
       <div class="reveal">
         <div class="item-detail-img">
           {% if item.photo_url %}
-            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" />
+            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div class=no-photo style=min-height:320px>'+(this.dataset.emoji||'📦')+'</div>'" data-emoji="{{ item.emoji }}" />
           {% elif item.photo %}
             <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Photo of {{ item.name }}" />
           {% else %}

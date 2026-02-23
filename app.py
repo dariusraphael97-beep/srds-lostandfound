@@ -169,6 +169,8 @@ def init_db():
         db.execute("ALTER TABLE claims ADD COLUMN proof_detail TEXT DEFAULT NULL")
     if "proof_score" not in claim_cols:
         db.execute("ALTER TABLE claims ADD COLUMN proof_score INTEGER DEFAULT 0")
+    # Strip legacy "url:" prefix from any existing photo_url values
+    db.execute("UPDATE items SET photo_url = SUBSTR(photo_url, 5) WHERE photo_url LIKE 'url:%'")
     db.commit()
 
     # Seed sample items if table is empty
@@ -182,7 +184,7 @@ def init_db():
              "Multiple Apple AirPods found across campus. Click View Details to see each variant — model, which bud(s), case included, and how many of each are still unclaimed.",
              "Various Locations on Campus",
              "2026-02-10",
-             "url:https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80",
+             "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80",
              5,
              "Brand: Apple · Multiple models · See variants below"),
 
@@ -191,7 +193,7 @@ def init_db():
              "Large blue Nike Brasilia backpack with a red drawstring keychain. Contains spiral notebooks and a pencil case.",
              "Main Hallway — near Lockers B12",
              "2026-02-11",
-             "url:https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
+             "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
              1, "Brand: Nike Brasilia · Color: Blue"),
 
             ("TI-84 Plus CE Calculator",
@@ -199,7 +201,7 @@ def init_db():
              "Black Texas Instruments TI-84 Plus CE graphing calculator. Name written in marker on back: J. Morris.",
              "Math Department — Room 112",
              "2026-02-13",
-             "url:https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80",
+             "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80",
              2, "Model: TI-84 Plus CE · Color: Black"),
 
             ("Green Hydro Flask (32oz)",
@@ -207,7 +209,7 @@ def init_db():
              "32oz Hydro Flask in forest green with stickers on the side — sunflower and mountain.",
              "Library — Study Room 2",
              "2026-02-10",
-             "url:https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80",
+             "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80",
              1, "Brand: Hydro Flask · Size: 32oz · Color: Forest Green"),
 
             ("Black Champion Zip Hoodie",
@@ -215,7 +217,7 @@ def init_db():
              "Black Champion zip-up hoodie, size Medium. Left on a cafeteria chair after lunch.",
              "Cafeteria — Table Area",
              "2026-02-12",
-             "url:https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80",
+             "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80",
              1, "Brand: Champion · Color: Black · Size: Medium"),
 
             ("Set of House Keys",
@@ -223,7 +225,7 @@ def init_db():
              "Set of 3 keys on a silver ring with a small blue star-shaped rubber keychain.",
              "Front Office — Main Entrance",
              "2026-02-09",
-             "url:https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
+             "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
              1, "Keys: 3 total · Keychain: Blue star"),
 
             ("Adidas Soccer Cleats",
@@ -231,7 +233,7 @@ def init_db():
              "Black and white Adidas Copa soccer cleats, men's size 10. Found near equipment room.",
              "Athletic Fields — Equipment Room",
              "2026-02-11",
-             "url:https://images.unsplash.com/photo-1511886929837-354d827aae26?w=600&q=80",
+             "https://images.unsplash.com/photo-1511886929837-354d827aae26?w=600&q=80",
              1, "Brand: Adidas Copa · Size: Men's 10"),
 
             ("Gold Heart Charm Bracelet",
@@ -239,7 +241,7 @@ def init_db():
              "Thin gold chain bracelet with a small heart charm. Found on the gymnasium floor.",
              "Gymnasium — Main Floor",
              "2026-02-13",
-             "url:https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80",
+             "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80",
              1, "Material: Gold tone · Charm: Heart"),
 
             ("Ray-Ban Wayfarer Sunglasses",
@@ -247,7 +249,7 @@ def init_db():
              "Classic black Ray-Ban Original Wayfarer sunglasses in a soft case.",
              "Outdoor Lunch Area — Bench 3",
              "2026-02-14",
-             "url:https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80",
+             "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80",
              1, "Brand: Ray-Ban · Model: Wayfarer RB2140"),
 
             ("Grey North Face Puffer Jacket",
@@ -255,7 +257,7 @@ def init_db():
              "Grey North Face Nuptse puffer jacket, size Large. Found hanging on a chair.",
              "Upper School — Room 304",
              "2026-02-15",
-             "url:https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80",
+             "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80",
              1, "Brand: The North Face · Style: Nuptse · Size: Large"),
 
             ("Apple MacBook USB-C Charger",
@@ -263,7 +265,7 @@ def init_db():
              "Apple 65W USB-C MacBook charger with white cable. Found plugged in at the library.",
              "Library — Charging Station",
              "2026-02-16",
-             "url:https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&q=80",
+             "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&q=80",
              1, "Brand: Apple · Wattage: 65W · USB-C"),
 
             ("Purple Spiral Notebook",
@@ -271,7 +273,7 @@ def init_db():
              "Purple spiral notebook, college ruled. Name inside: A. Chen. History notes throughout.",
              "Cafeteria — Table 7",
              "2026-02-10",
-             "url:https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=600&q=80",
+             "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=600&q=80",
              1, "Color: Purple · Ruled: College · Name: A. Chen"),
         ]
 
@@ -386,13 +388,15 @@ def smart_match(name, category, description, location, date_lost, db):
 
 
 def enrich_items(rows):
-    """Add emoji; photo_url is already in the DB column. Fall back to category photo."""
+    """Add emoji; strip url: prefix from photo_url. Fall back to category photo."""
     result = []
     for row in rows:
         d = dict(row)
         d["emoji"] = CATEGORY_EMOJI.get(d["category"], "📦")
-        # photo_url column has external URLs; photo column has local uploads
-        # If neither, fall back to category default
+        # Strip legacy "url:" prefix if present
+        if d.get("photo_url") and str(d["photo_url"]).startswith("url:"):
+            d["photo_url"] = d["photo_url"][4:]
+        # Fall back to category default if no photo at all
         if not d.get("photo_url") and not d.get("photo"):
             d["photo_url"] = CATEGORY_PHOTOS.get(d["category"])
         result.append(d)
@@ -408,9 +412,7 @@ def allowed_file(filename):
 @app.route("/")
 def index():
     db = get_db()
-    recent_rows = db.execute(
-        "SELECT * FROM items WHERE status='approved' ORDER BY id DESC LIMIT 6"
-    ).fetchall()
+    recent_rows = db.execute("SELECT * FROM items WHERE status='approved' ORDER BY id DESC LIMIT 6").fetchall()
     total   = db.execute("SELECT COUNT(*) FROM items WHERE status='approved'").fetchone()[0]
     claimed = db.execute("SELECT COUNT(*) FROM items WHERE status='claimed'").fetchone()[0]
     return render_template("index.html", recent=enrich_items(recent_rows), total=total, claimed=claimed)
@@ -627,6 +629,125 @@ def timeline(item_id):
     ).fetchall()
     return render_template("timeline.html", item=item, events=events, claims=claims)
 
+
+
+
+# ─── SPA JSON APIs ────────────────────────────────────────────────────────────
+
+@app.route("/api/items")
+def api_items():
+    db       = get_db()
+    search   = request.args.get("q", "").strip()
+    category = request.args.get("category", "").strip()
+    query    = "SELECT * FROM items WHERE status='approved'"
+    params   = []
+    if search:
+        query += " AND (name LIKE ? OR description LIKE ? OR location LIKE ?)"
+        params += [f"%{search}%"] * 3
+    if category:
+        query += " AND category=?"
+        params.append(category)
+    query += " ORDER BY id DESC LIMIT 40"
+    rows  = db.execute(query, params).fetchall()
+    items = enrich_items(rows)
+    # Attach variant counts for AirPods-style items
+    for item in items:
+        variants = db.execute(
+            "SELECT * FROM item_variants WHERE item_id=?", (item["id"],)
+        ).fetchall()
+        item["variants"] = [dict(v) for v in variants]
+    return jsonify(items)
+
+@app.route("/api/item/<int:item_id>")
+def api_item(item_id):
+    db  = get_db()
+    row = db.execute("SELECT * FROM items WHERE id=?", (item_id,)).fetchone()
+    if not row:
+        return jsonify({"error": "Not found"}), 404
+    item = enrich_items([row])[0]
+    variants = db.execute("SELECT * FROM item_variants WHERE item_id=? ORDER BY id", (item_id,)).fetchall()
+    item["variants"] = [dict(v) for v in variants]
+    events   = db.execute("SELECT * FROM item_events WHERE item_id=? ORDER BY timestamp", (item_id,)).fetchall()
+    claims   = db.execute("SELECT * FROM claims WHERE item_id=? ORDER BY submitted", (item_id,)).fetchall()
+    item["events"] = [dict(e) for e in events]
+    item["claim_count"] = len(claims)
+    return jsonify(item)
+
+@app.route("/api/smart_match", methods=["POST"])
+def api_smart_match():
+    data     = request.get_json() or {}
+    name     = data.get("name", "")
+    category = data.get("category", "")
+    desc     = data.get("description", "")
+    location = data.get("location", "")
+    date     = data.get("date_lost", datetime.now().strftime("%Y-%m-%d"))
+    db       = get_db()
+    matches  = smart_match(name, category, desc, location, date, db)
+    return jsonify(matches)
+
+@app.route("/api/claim", methods=["POST"])
+def api_claim():
+    data        = request.get_json() or {}
+    item_id     = data.get("item_id")
+    claimant    = data.get("claimant", "").strip()
+    email       = data.get("email", "").strip()
+    student_id  = data.get("student_id", "").strip()
+    proof_detail= data.get("proof_detail", "").strip()
+    message     = data.get("message", "").strip()
+
+    if not all([item_id, claimant, email, student_id, proof_detail]):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    keywords = ["serial","number","sticker","scratch","crack","initials","broken",
+                "dent","tag","wrote","name","code","charm","inside","pocket",
+                "keychain","sharpie","marker","missing","chipped","strap","digits","model","color"]
+    proof_score = min(40, len(proof_detail) // 3)
+    for kw in keywords:
+        if kw in proof_detail.lower(): proof_score += 8
+    proof_score = min(proof_score, 100)
+
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    db = get_db()
+    db.execute(
+        "INSERT INTO claims (item_id, claimant, email, student_id, message, proof_detail, proof_score, submitted) VALUES (?,?,?,?,?,?,?,?)",
+        (item_id, claimant, email, student_id, message, proof_detail, proof_score, now_str)
+    )
+    db.execute(
+        "INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
+        (item_id, "claim_submitted", f"Claim by {claimant} (proof score: {proof_score})", now_str)
+    )
+    db.commit()
+    return jsonify({"success": True, "proof_score": proof_score})
+
+@app.route("/api/lost_report", methods=["POST"])
+def api_lost_report():
+    data = request.get_json() or {}
+    required = ["name","category","description","location","date_lost","contact"]
+    if not all(data.get(k,"").strip() for k in required):
+        return jsonify({"error": "Missing fields"}), 400
+    db = get_db()
+    db.execute(
+        "INSERT INTO lost_reports (name, category, description, location, date_lost, contact, submitted) VALUES (?,?,?,?,?,?,?)",
+        (data["name"], data["category"], data["description"], data["location"],
+         data["date_lost"], data["contact"], datetime.now().strftime("%Y-%m-%d %H:%M"))
+    )
+    db.commit()
+    matches = smart_match(data["name"], data["category"], data["description"],
+                          data["location"], data["date_lost"], db)
+    return jsonify({"success": True, "matches": matches})
+
+@app.route("/api/heatmap")
+def api_heatmap():
+    db   = get_db()
+    rows = db.execute(
+        "SELECT location, category, COUNT(*) as count FROM items WHERE status='approved' GROUP BY location, category"
+    ).fetchall()
+    from collections import defaultdict
+    loc_data = defaultdict(lambda: {"total": 0, "categories": {}})
+    for r in rows:
+        loc_data[r["location"]]["total"] += r["count"]
+        loc_data[r["location"]]["categories"][r["category"]] = r["count"]
+    return jsonify(dict(loc_data))
 
 
 # ---------- Admin Routes ----------

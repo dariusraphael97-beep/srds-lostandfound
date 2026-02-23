@@ -21,7 +21,7 @@
           {% if item.photo %}
             <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Photo of {{ item.name }}" />
           {% elif item.photo_url %}
-            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" style="width:100%;height:400px;object-fit:cover;" />
+            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" style="width:100%;height:400px;object-fit:cover;" onerror="this.outerHTML='<div class=no-photo style=height:400px;font-size:5rem>'+(this.dataset.emoji||'📦')+'</div>'" data-emoji="{{ item.emoji }}" />
           {% else %}
             <div class="no-photo" aria-label="No photo">{{ item.emoji }}</div>
           {% endif %}
