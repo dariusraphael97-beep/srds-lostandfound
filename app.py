@@ -100,20 +100,26 @@ def init_db():
     # Seed sample items if table is empty
     count = db.execute("SELECT COUNT(*) FROM items").fetchone()[0]
     if count == 0:
+        # Each item has a specific matching Unsplash photo URL stored as the photo field
+        # We prefix with "url:" so the template knows to use it as a direct URL vs a local file
         sample_items = [
-            ("Blue Nike Backpack",       "Bags & Backpacks",     "Large blue Nike backpack with a red keychain. Several notebooks inside.",              "Main Hallway — near Lockers",   "2025-01-15"),
-            ("Apple AirPods Pro",        "Electronics",          "White AirPods Pro in a white charging case. Case has a small scratch on the lid.",     "Gym Bleachers",                 "2025-01-16"),
-            ("Green Hydroflask",         "Water Bottles",        "32oz Hydroflask in forest green with stickers on the side.",                           "Library Study Room 2",          "2025-01-17"),
-            ("Black Champion Hoodie",    "Clothing & Apparel",   "Black Champion zip-up hoodie, size Medium. Left in the cafeteria after lunch.",        "Cafeteria",                     "2025-01-18"),
-            ("Set of House Keys",        "Keys",                 "3 keys on a silver ring with a small blue rubber keychain.",                           "Front Office Entrance",         "2025-01-19"),
-            ("TI-84 Calculator",         "Electronics",          "TI-84 Plus CE graphing calculator. Name on back in permanent marker: J. Morris.",      "Math Department Hallway",       "2025-01-20"),
-            ("Soccer Cleats",            "Sports Equipment",     "Black and white Adidas soccer cleats, size 10. Found near the athletic fields.",       "Athletic Fields — Equipment Rm","2025-01-21"),
-            ("Gold Bracelet",            "Jewelry & Accessories","Thin gold chain bracelet with a small heart charm. Found on the gym floor.",           "Gymnasium",                     "2025-01-22"),
+            ("Blue Nike Backpack",       "Bags & Backpacks",     "Large blue Nike backpack with a red keychain. Several notebooks inside.",              "Main Hallway — near Lockers",    "2025-01-15", "url:https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80"),
+            ("Apple AirPods Pro",        "Electronics",          "White AirPods Pro in a white charging case. Case has a small scratch on the lid.",     "Gym Bleachers",                  "2025-01-16", "url:https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80"),
+            ("Green Hydroflask",         "Water Bottles",        "32oz Hydroflask in forest green with stickers on the side.",                           "Library Study Room 2",           "2025-01-17", "url:https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80"),
+            ("Black Champion Hoodie",    "Clothing & Apparel",   "Black Champion zip-up hoodie, size Medium. Left in the cafeteria after lunch.",        "Cafeteria",                      "2025-01-18", "url:https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80"),
+            ("Set of House Keys",        "Keys",                 "3 keys on a silver ring with a small blue rubber keychain.",                           "Front Office Entrance",          "2025-01-19", "url:https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"),
+            ("TI-84 Calculator",         "Electronics",          "TI-84 Plus CE graphing calculator. Name on back in permanent marker: J. Morris.",      "Math Department Hallway",        "2025-01-20", "url:https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80"),
+            ("Soccer Cleats",            "Sports Equipment",     "Black and white Adidas soccer cleats, size 10. Found near the athletic fields.",       "Athletic Fields — Equipment Rm", "2025-01-21", "url:https://images.unsplash.com/photo-1511886929837-354d827aae26?w=600&q=80"),
+            ("Gold Bracelet",            "Jewelry & Accessories","Thin gold chain bracelet with a small heart charm. Found on the gym floor.",           "Gymnasium",                      "2025-01-22", "url:https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80"),
+            ("Ray-Ban Sunglasses",       "Jewelry & Accessories","Classic black Ray-Ban Wayfarer sunglasses in a soft case.",                            "Outdoor Lunch Area",             "2025-01-23", "url:https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80"),
+            ("Grey North Face Jacket",   "Clothing & Apparel",   "Grey North Face puffer jacket, size Large. Found hanging on a chair.",                 "Science Wing — Room 204",        "2025-01-24", "url:https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80"),
+            ("MacBook Charger",          "Electronics",          "Apple 65W USB-C MacBook charger with a white cable. No name on it.",                   "Library — Charging Station",     "2025-01-25", "url:https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&q=80"),
+            ("Spiral Notebook",          "Books & Stationery",   "Purple spiral notebook with History notes inside. Name inside cover: A. Chen.",        "Cafeteria — Table 7",            "2025-01-26", "url:https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=600&q=80"),
         ]
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
         for item in sample_items:
             db.execute(
-                "INSERT INTO items (name, category, description, location, date_found, status, submitted) VALUES (?,?,?,?,?,'approved',?)",
+                "INSERT INTO items (name, category, description, location, date_found, photo, status, submitted) VALUES (?,?,?,?,?,?,'approved',?)",
                 (*item, now)
             )
         db.commit()
@@ -121,12 +127,20 @@ def init_db():
 
 
 def enrich_items(rows):
-    """Add emoji and placeholder_url to item rows."""
+    """Add emoji and resolved photo_url to item rows."""
     result = []
     for row in rows:
         d = dict(row)
         d["emoji"] = CATEGORY_EMOJI.get(d["category"], "📦")
-        d["placeholder_url"] = CATEGORY_PHOTOS.get(d["category"])
+        # If photo starts with "url:" it's a direct external URL
+        # Otherwise it's a local filename in static/uploads
+        # Fall back to category photo if neither
+        if d.get("photo") and d["photo"].startswith("url:"):
+            d["photo_url"] = d["photo"][4:]  # strip "url:" prefix
+        elif d.get("photo"):
+            d["photo_url"] = None  # local file, handled by template with url_for
+        else:
+            d["photo_url"] = CATEGORY_PHOTOS.get(d["category"])  # fallback
         result.append(d)
     return result
 

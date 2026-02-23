@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<!-- HERO -->
+<!-- ===== HERO ===== -->
 <section class="hero" aria-labelledby="hero-heading">
   <div class="hero-bg"></div>
   <div class="particles"></div>
@@ -13,113 +13,107 @@
     <div>
       <div class="hero-eyebrow reveal">
         <span class="dot" aria-hidden="true"></span>
-        Official School Portal
+        Saddle River Day School — Official Portal
       </div>
 
       <h1 id="hero-heading" class="reveal reveal-delay-1">
-        <span class="line-normal">Find What's</span>
-        <span class="gradient italic">Lost.</span>
-        <span class="line-normal">Return What's <span class="italic">Found.</span></span>
+        <span style="display:block;">Find What's</span>
+        <span style="display:block; font-style:italic; background:linear-gradient(90deg,#fff 0%,rgba(74,127,212,0.9) 50%,#fff 100%); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; animation:shimmer 4s linear infinite;">Lost.</span>
+        <span style="display:block;">Return What's <em>Found.</em></span>
       </h1>
 
       <p class="hero-desc reveal reveal-delay-2">
-        Saddle River Day School's official lost-and-found system.
-        Report items you've found, search for your belongings,
-        or submit a claim — all in one place.
+        SRDS's official lost-and-found system. Report items you've found,
+        search for your belongings, or submit a claim — all in one place.
+        Fast, easy, and built for our school community.
       </p>
 
       <div class="hero-actions reveal reveal-delay-3">
         <a href="{{ url_for('items') }}" class="btn btn-primary">🔍 Browse Lost Items</a>
         <a href="{{ url_for('report') }}" class="btn btn-outline">📋 Report Found Item</a>
       </div>
+
+      <!-- Quick trust indicators -->
+      <div class="reveal reveal-delay-4" style="display:flex; gap:24px; margin-top:36px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--white-40);">
+          <span style="color:var(--success);">✓</span> Free to use
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--white-40);">
+          <span style="color:var(--success);">✓</span> Staff verified
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--white-40);">
+          <span style="color:var(--success);">✓</span> Mobile friendly
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--white-40);">
+          <span style="color:var(--success);">✓</span> Secure claims process
+        </div>
+      </div>
     </div>
 
     <!-- Stats panel -->
     <div class="hero-panel reveal reveal-delay-2" aria-label="Site statistics">
-      <div class="stat-grid">
-        <div class="stat-box">
-          <span class="stat-number" data-target="{{ total }}">0</span>
-          <div class="stat-label">Items Listed</div>
+      <div style="margin-bottom:16px;">
+        <p style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.15em; color:var(--white-40); margin-bottom:12px;">Live Statistics</p>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <span class="stat-number" data-target="{{ total }}">0</span>
+            <div class="stat-label">Items Listed</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number" data-target="{{ claimed }}">0</span>
+            <div class="stat-label">Returned</div>
+          </div>
         </div>
-        <div class="stat-box">
-          <span class="stat-number" data-target="{{ claimed }}">0</span>
-          <div class="stat-label">Returned</div>
+        <div class="stat-box" style="margin-top:14px; text-align:center;">
+          <span class="stat-number" style="font-size:2rem;">24h</span>
+          <div class="stat-label">Avg. Response Time</div>
         </div>
-      </div>
-      <div class="stat-box" style="text-align:center;">
-        <span class="stat-number" style="font-size:2rem;">24h</span>
-        <div class="stat-label">Avg. Response Time</div>
       </div>
 
-      <div class="search-hint" onclick="window.location.href='{{ url_for('items') }}'" role="button" tabindex="0" aria-label="Search items">
-        <span class="search-icon">🔍</span>
-        <span>Search all items…</span>
-        <kbd title="Keyboard shortcut">Ctrl K</kbd>
+      <div style="border-top:1px solid var(--white-10); padding-top:16px;">
+        <p style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.15em; color:var(--white-40); margin-bottom:12px;">Quick Actions</p>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <a href="{{ url_for('items') }}" style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--white-05); border:1px solid var(--white-10); border-radius:var(--radius-sm); transition:all var(--transition); color:var(--white-70); font-size:0.88rem; font-weight:500;" onmouseover="this.style.borderColor='rgba(74,127,212,0.4)'" onmouseout="this.style.borderColor='var(--white-10)'">
+            <span>🔍</span> Search all found items <span style="margin-left:auto; color:var(--white-40);">→</span>
+          </a>
+          <a href="{{ url_for('report') }}" style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--white-05); border:1px solid var(--white-10); border-radius:var(--radius-sm); transition:all var(--transition); color:var(--white-70); font-size:0.88rem; font-weight:500;" onmouseover="this.style.borderColor='rgba(74,127,212,0.4)'" onmouseout="this.style.borderColor='var(--white-10)'">
+            <span>📋</span> Report a found item <span style="margin-left:auto; color:var(--white-40);">→</span>
+          </a>
+          <div style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--white-05); border:1px solid var(--white-10); border-radius:var(--radius-sm); color:var(--white-40); font-size:0.82rem;">
+            <span>⌨️</span> Press <kbd style="padding:2px 8px; border:1px solid var(--white-20); border-radius:4px; font-size:0.75rem;">Ctrl K</kbd> to search instantly
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="section" aria-labelledby="how-heading">
-  <div class="container">
-    <div class="section-heading reveal">
-      <p class="eyebrow">Simple Process</p>
-      <h2 id="how-heading">How It Works</h2>
-      <div class="section-divider" aria-hidden="true"></div>
-    </div>
-
-    <div class="steps-grid">
-      <div class="step-card reveal reveal-delay-1">
-        <div class="step-number" aria-hidden="true">1</div>
-        <h3>Found Something?</h3>
-        <p>Fill out our simple form to report a found item. Upload a photo to help the owner recognize it instantly.</p>
-      </div>
-      <div class="step-card reveal reveal-delay-2">
-        <div class="step-number" aria-hidden="true">2</div>
-        <h3>Admin Reviews</h3>
-        <p>School staff reviews every submission before it goes live, keeping the directory accurate and trustworthy.</p>
-      </div>
-      <div class="step-card reveal reveal-delay-3">
-        <div class="step-number" aria-hidden="true">3</div>
-        <h3>Search &amp; Find</h3>
-        <p>Browse all listed items or search by keyword and category. Bookmark items you're watching.</p>
-      </div>
-      <div class="step-card reveal reveal-delay-4">
-        <div class="step-number" aria-hidden="true">4</div>
-        <h3>Claim Your Item</h3>
-        <p>Spot your belonging? Submit a claim with your student ID — staff will verify and arrange pickup.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- RECENT ITEMS -->
+<!-- ===== RECENT ITEMS ===== -->
 {% if recent %}
-<section class="section" style="padding-top:0;" aria-labelledby="recent-heading">
+<section class="section" aria-labelledby="recent-heading">
   <div class="container">
     <div class="section-heading reveal">
       <p class="eyebrow">Just Added</p>
       <h2 id="recent-heading">Recently Found Items</h2>
+      <p style="margin-top:12px; max-width:500px; margin-left:auto; margin-right:auto; font-size:0.95rem;">
+        These items were recently turned in. Recognize something? Click to submit a claim.
+      </p>
       <div class="section-divider" aria-hidden="true"></div>
     </div>
 
     <div class="items-grid">
       {% for item in recent %}
-      <article class="card reveal reveal-delay-{{ loop.index if loop.index <= 3 else 3 }}" role="listitem">
+      <article class="card reveal reveal-delay-{{ (loop.index0 % 3) + 1 }}" role="listitem">
         <div class="card-img-wrap">
-          {% if item.photo %}
+          {% if item.photo and not item.photo.startswith('url:') %}
             <img class="card-img" src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Photo of {{ item.name }}" loading="lazy" />
-          {% elif item.placeholder_url %}
-            <img class="card-img" src="{{ item.placeholder_url }}" alt="Illustrative photo for {{ item.category }}" loading="lazy" />
+          {% elif item.photo_url %}
+            <img class="card-img" src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" loading="lazy" />
           {% else %}
-            <div class="card-img-placeholder" aria-label="No photo available">
-              {{ item.emoji or '📦' }}
-            </div>
+            <div class="card-img-placeholder" aria-label="{{ item.category }} item">{{ item.emoji }}</div>
           {% endif %}
           <div class="card-img-overlay" aria-hidden="true"></div>
         </div>
-
         <div class="card-body">
           <span class="card-category">{{ item.category }}</span>
           <h3 class="card-title">{{ item.name }}</h3>
@@ -127,12 +121,12 @@
             <span>📍 {{ item.location }}</span>
             <span>📅 {{ item.date_found }}</span>
           </div>
-          <p style="font-size:0.85rem; color:var(--white-40); margin-bottom:16px; line-height:1.5;">
+          <p style="font-size:0.84rem; color:var(--white-40); margin-bottom:16px; line-height:1.5;">
             {{ item.description[:80] }}{% if item.description|length > 80 %}…{% endif %}
           </p>
           <div class="card-actions">
             <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-primary btn-sm">Claim This</a>
-            <button class="bookmark-btn" data-id="{{ item.id }}" aria-label="Bookmark this item" title="Save for later">🏷️</button>
+            <button class="bookmark-btn" data-id="{{ item.id }}" aria-label="Bookmark {{ item.name }}" title="Save for later">🏷️</button>
           </div>
         </div>
       </article>
@@ -140,22 +134,99 @@
     </div>
 
     <div class="reveal" style="text-align:center; margin-top:48px;">
-      <a href="{{ url_for('items') }}" class="btn btn-glass">View All Items →</a>
+      <a href="{{ url_for('items') }}" class="btn btn-glass">View All {{ total }} Items →</a>
     </div>
   </div>
 </section>
 {% endif %}
 
-<!-- CTA -->
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section" style="background:rgba(13,27,62,0.5); border-top:1px solid var(--white-10); border-bottom:1px solid var(--white-10);" aria-labelledby="how-heading">
+  <div class="container">
+    <div class="section-heading reveal">
+      <p class="eyebrow">Simple Process</p>
+      <h2 id="how-heading">How It Works</h2>
+      <p style="margin-top:12px; max-width:480px; margin-left:auto; margin-right:auto; font-size:0.95rem;">
+        Getting reunited with your lost belongings takes just a few steps.
+      </p>
+      <div class="section-divider" aria-hidden="true"></div>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card reveal reveal-delay-1">
+        <div class="step-number" aria-hidden="true">1</div>
+        <h3>Found Something?</h3>
+        <p>Fill out our quick form to report a found item. Upload a photo so the owner can identify it at a glance.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-2">
+        <div class="step-number" aria-hidden="true">2</div>
+        <h3>Admin Reviews</h3>
+        <p>School staff reviews every submission before it goes live — keeping the directory accurate and trustworthy.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-3">
+        <div class="step-number" aria-hidden="true">3</div>
+        <h3>Search &amp; Browse</h3>
+        <p>Search by keyword, filter by category, or just scroll. Bookmark items you're watching for quick access later.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-4">
+        <div class="step-number" aria-hidden="true">4</div>
+        <h3>Claim Your Item</h3>
+        <p>Spot your belonging? Submit a claim with your student ID — staff will verify and arrange a safe pickup.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CATEGORIES SHOWCASE ===== -->
+<section class="section" aria-labelledby="categories-heading">
+  <div class="container">
+    <div class="section-heading reveal">
+      <p class="eyebrow">Browse by Category</p>
+      <h2 id="categories-heading">What Kind of Item Are You Looking For?</h2>
+      <div class="section-divider" aria-hidden="true"></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:16px;" class="reveal">
+      {% set cats = [
+        ('Bags & Backpacks',    '🎒'),
+        ('Electronics',         '📱'),
+        ('Clothing & Apparel',  '👕'),
+        ('Books & Stationery',  '📚'),
+        ('Sports Equipment',    '⚽'),
+        ('Jewelry & Accessories','💍'),
+        ('Keys',                '🔑'),
+        ('Water Bottles',       '💧'),
+        ('Other',               '📦'),
+      ] %}
+      {% for cat, emoji in cats %}
+      <a href="{{ url_for('items', category=cat) }}"
+         style="display:flex; flex-direction:column; align-items:center; gap:10px; padding:24px 16px;
+                background:var(--white-05); border:1px solid var(--white-10); border-radius:var(--radius);
+                transition:all 0.3s ease; text-align:center; text-decoration:none;"
+         onmouseover="this.style.borderColor='rgba(74,127,212,0.5)'; this.style.background='rgba(74,127,212,0.08)'; this.style.transform='translateY(-4px)'"
+         onmouseout="this.style.borderColor='var(--white-10)'; this.style.background='var(--white-05)'; this.style.transform=''"
+         aria-label="Browse {{ cat }}">
+        <span style="font-size:2rem;" aria-hidden="true">{{ emoji }}</span>
+        <span style="font-size:0.78rem; font-weight:600; color:var(--white-70); line-height:1.2;">{{ cat }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
 <section class="section-sm">
   <div class="container">
     <div class="cta-box reveal">
-      <p class="eyebrow" style="color:var(--accent); font-size:0.72rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:14px;">Found Something at SRDS?</p>
-      <h2 style="color:var(--white); margin-bottom:14px;">Help a Fellow Rebel Get Their Stuff Back</h2>
-      <p style="color:var(--white-70); margin-bottom:32px; max-width:500px; margin-left:auto; margin-right:auto;">
-        Takes less than 2 minutes to report. Your classmate will thank you.
+      <p style="font-size:0.72rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;">Found Something at SRDS?</p>
+      <h2 style="color:var(--white); margin-bottom:14px; font-size:clamp(1.6rem,3vw,2.4rem);">Help a Fellow Rebel Get Their Stuff Back</h2>
+      <p style="color:var(--white-70); margin-bottom:32px; max-width:500px; margin-left:auto; margin-right:auto; line-height:1.75;">
+        Takes less than 2 minutes. Fill in the details, snap a photo, and submit — our staff will handle the rest.
       </p>
-      <a href="{{ url_for('report') }}" class="btn btn-primary">Report a Found Item →</a>
+      <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
+        <a href="{{ url_for('report') }}" class="btn btn-primary">📋 Report a Found Item</a>
+        <a href="{{ url_for('items') }}" class="btn btn-outline">🔍 Browse All Items</a>
+      </div>
     </div>
   </div>
 </section>

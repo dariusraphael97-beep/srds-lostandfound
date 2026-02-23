@@ -18,10 +18,10 @@
       <div class="reveal">
         <h2 style="margin-bottom:20px; font-size:1.6rem;">Item You're Claiming</h2>
         <div class="item-detail-img">
-          {% if item.photo %}
+          {% if item.photo and not item.photo.startswith('url:') %}
             <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Photo of {{ item.name }}" />
-          {% elif item.placeholder_url %}
-            <img src="{{ item.placeholder_url }}" alt="Illustrative image for {{ item.category }}" />
+          {% elif item.photo_url %}
+            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" />
           {% else %}
             <div class="no-photo" aria-label="No photo">{{ item.emoji }}</div>
           {% endif %}
