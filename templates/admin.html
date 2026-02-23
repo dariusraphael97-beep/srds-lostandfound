@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — SRDS Lost & Found{% endblock %}
+
+{% block content %}
+<header class="page-header" aria-labelledby="admin-heading">
+  <div class="container" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h1 id="admin-heading" style="font-size:2rem;">Admin Dashboard</h1>
+      <p>Manage submissions, claims &amp; notifications.</p>
+    </div>
+    <a href="{{ url_for('admin_logout') }}" class="btn btn-glass btn-sm">Sign Out</a>
+  </div>
+</header>
+
+<section class="section-sm">
+  <div class="container">
+
+    <!-- Stats -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-bottom:40px;">
+      {% for label, val, color in [
+        ('Pending Items', pending_items|length, 'var(--warning)'),
+        ('Live Items',    approved_items|length, 'var(--success)'),
+        ('Claimed',       claimed_items|length,  'var(--accent)'),
+        ('Pending Claims',pending_claims|length, 'var(--error)'),
+        ('Notifications', notifications|length,  'var(--gray-300)')
+      ] %}
+      <div class="card reveal" style="padding:24px; text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif; font-size:2.4rem; font-weight:700; color:{{ color }}; line-height:1;">{{ val }}</div>
+        <div style="font-size:0.72rem; color:var(--white-40); font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-top:6px;">{{ label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Tabs -->
+    <div class="admin-tabs reveal" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="tab-pending"       id="btn-pending">⏳ Pending ({{ pending_items|length }})</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-approved"      id="btn-approved">✓ Live ({{ approved_items|length }})</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-claims"        id="btn-claims">📬 Claims ({{ pending_claims|length }})</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-claimed"       id="btn-claimed">📦 Claimed ({{ claimed_items|length }})</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-notifications" id="btn-notifs">🔔 Alerts ({{ notifications|length }})</button>
+    </div>
+
+    <!-- Pending Items -->
+    <div class="tab-panel active card" id="tab-pending" role="tabpanel" aria-labelledby="btn-pending">
+      {% if pending_items %}
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Item</th><th>Category</th><th>Location</th><th>Date Found</th><th>Submitted</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for item in pending_items %}
+            <tr>
+              <td style="color:var(--white-40);">#{{ item.id }}</td>
+              <td><strong style="color:var(--white);">{{ item.name }}</strong>{% if item.photo %}<br><span style="font-size:0.75rem; color:var(--accent);">📷 Has photo</span>{% endif %}</td>
+              <td><span class="badge badge-pending">{{ item.category }}</span></td>
+              <td>{{ item.location }}</td>
+              <td>{{ item.date_found }}</td>
+              <td style="font-size:0.8rem;">{{ item.submitted }}</td>
+              <td style="display:flex; gap:6px; flex-wrap:wrap;">
+                <form method="POST" action="{{ url_for('admin_action') }}" style="display:inline;">
+                  <input type="hidden" name="action" value="approve_item" />
+                  <input type="hidden" name="item_id" value="{{ item.id }}" />
+                  <button type="submit" class="btn btn-success btn-xs">✓ Approve</button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_action') }}" style="display:inline;" onsubmit="return confirm('Delete this item?');">
+                  <input type="hidden" name="action" value="reject_item" />
+                  <input type="hidden" name="item_id" value="{{ item.id }}" />
+                  <button type="submit" class="btn btn-danger btn-xs">✕ Reject</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">✅</div><h3>No pending items</h3><p>You're all caught up!</p></div>
+      {% endif %}
+    </div>
+
+    <!-- Approved Items -->
+    <div class="tab-panel card" id="tab-approved" role="tabpanel" aria-labelledby="btn-approved">
+      {% if approved_items %}
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Item</th><th>Category</th><th>Location</th><th>Date Found</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for item in approved_items %}
+            <tr>
+              <td style="color:var(--white-40);">#{{ item.id }}</td>
+              <td><strong style="color:var(--white);">{{ item.name }}</strong></td>
+              <td><span class="badge badge-approved">{{ item.category }}</span></td>
+              <td>{{ item.location }}</td>
+              <td>{{ item.date_found }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('admin_action') }}" style="display:inline;">
+                  <input type="hidden" name="action" value="mark_claimed" />
+                  <input type="hidden" name="item_id" value="{{ item.id }}" />
+                  <button type="submit" class="btn btn-glass btn-xs">Mark Claimed</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">📭</div><h3>No live items</h3><p>Approve pending items to publish them.</p></div>
+      {% endif %}
+    </div>
+
+    <!-- Claims -->
+    <div class="tab-panel card" id="tab-claims" role="tabpanel" aria-labelledby="btn-claims">
+      {% if pending_claims %}
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Item</th><th>Claimant</th><th>Email</th><th>Student ID</th><th>Message</th><th>Submitted</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for claim in pending_claims %}
+            <tr>
+              <td style="color:var(--white-40);">#{{ claim.id }}</td>
+              <td><strong style="color:var(--white);">{{ claim.item_name }}</strong></td>
+              <td>{{ claim.claimant }}</td>
+              <td><a href="mailto:{{ claim.email }}" style="color:var(--accent);">{{ claim.email }}</a></td>
+              <td>{{ claim.student_id }}</td>
+              <td style="max-width:160px; font-size:0.82rem;">{{ claim.message or '—' }}</td>
+              <td style="font-size:0.8rem;">{{ claim.submitted }}</td>
+              <td style="display:flex; gap:6px;">
+                <form method="POST" action="{{ url_for('admin_action') }}" style="display:inline;">
+                  <input type="hidden" name="action" value="approve_claim" />
+                  <input type="hidden" name="claim_id" value="{{ claim.id }}" />
+                  <button type="submit" class="btn btn-success btn-xs">✓</button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_action') }}" style="display:inline;">
+                  <input type="hidden" name="action" value="reject_claim" />
+                  <input type="hidden" name="claim_id" value="{{ claim.id }}" />
+                  <button type="submit" class="btn btn-danger btn-xs">✕</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">📬</div><h3>No pending claims</h3></div>
+      {% endif %}
+    </div>
+
+    <!-- Claimed -->
+    <div class="tab-panel card" id="tab-claimed" role="tabpanel" aria-labelledby="btn-claimed">
+      {% if claimed_items %}
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Item</th><th>Category</th><th>Location</th><th>Date Found</th></tr></thead>
+          <tbody>
+            {% for item in claimed_items %}
+            <tr>
+              <td style="color:var(--white-40);">#{{ item.id }}</td>
+              <td><strong style="color:var(--white);">{{ item.name }}</strong></td>
+              <td><span class="badge badge-claimed">{{ item.category }}</span></td>
+              <td>{{ item.location }}</td>
+              <td>{{ item.date_found }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">📦</div><h3>No claimed items yet</h3></div>
+      {% endif %}
+    </div>
+
+    <!-- Notifications -->
+    <div class="tab-panel card" id="tab-notifications" role="tabpanel" aria-labelledby="btn-notifs">
+      {% if notifications %}
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Email</th><th>Keyword</th><th>Created</th></tr></thead>
+          <tbody>
+            {% for n in notifications %}
+            <tr>
+              <td style="color:var(--white-40);">#{{ n.id }}</td>
+              <td><a href="mailto:{{ n.email }}" style="color:var(--accent);">{{ n.email }}</a></td>
+              <td><span class="badge badge-approved">{{ n.keyword }}</span></td>
+              <td style="font-size:0.8rem;">{{ n.created }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">🔔</div><h3>No notifications set up yet</h3></div>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const panels  = document.querySelectorAll('.tab-panel');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected','true');
+      document.getElementById(btn.getAttribute('aria-controls')).classList.add('active');
+    });
+  });
+</script>
+{% endblock %}

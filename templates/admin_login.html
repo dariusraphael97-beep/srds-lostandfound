@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Admin Login — SRDS Lost & Found{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <form class="form-card reveal" method="POST" style="max-width:400px;" aria-label="Admin login">
+      <div style="text-align:center; margin-bottom:36px;">
+        <div style="width:68px;height:68px;background:linear-gradient(135deg,var(--accent),var(--blue-bright));border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:2rem;box-shadow:0 8px 24px var(--accent-glow);">🔐</div>
+        <h2 style="font-size:1.8rem;">Admin Access</h2>
+        <p style="font-size:0.88rem;">SRDS Staff Only</p>
+      </div>
+      <div class="form-group">
+        <label for="password">Password <span class="required">*</span></label>
+        <input type="password" id="password" name="password" required placeholder="Enter admin password" />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Sign In →</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

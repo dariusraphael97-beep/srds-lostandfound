@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Browse Items — SRDS Lost & Found{% endblock %}
+
+{% block content %}
+
+<header class="page-header" aria-labelledby="browse-heading">
+  <div class="container">
+    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:16px;">📦 Found Items Directory</div>
+    <h1 id="browse-heading">Browse Lost &amp; Found</h1>
+    <p>Search all items reported at Saddle River Day School.</p>
+  </div>
+</header>
+
+<section class="section-sm">
+  <div class="container">
+
+    <!-- Notification signup -->
+    <div style="background:rgba(74,127,212,0.08); border:1px solid rgba(74,127,212,0.2); border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; display:flex; gap:14px; align-items:center; flex-wrap:wrap;" class="reveal">
+      <span style="font-size:1.2rem;" aria-hidden="true">🔔</span>
+      <div style="flex:1; min-width:200px;">
+        <strong style="color:var(--white); font-size:0.9rem;">Get Notified</strong>
+        <p style="font-size:0.82rem; margin:0; color:var(--white-40);">Enter your email and a keyword — we'll notify you when a matching item is posted.</p>
+      </div>
+      <form method="POST" action="{{ url_for('notify') }}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <input type="email" name="email" placeholder="your@srds.org" required style="width:180px; padding:9px 14px; font-size:0.85rem;" aria-label="Your email address" />
+        <input type="text"  name="keyword" placeholder="e.g. backpack, keys…" required style="width:160px; padding:9px 14px; font-size:0.85rem;" aria-label="Search keyword" />
+        <button type="submit" class="btn btn-primary btn-sm">Notify Me</button>
+      </form>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar reveal" role="search" aria-label="Search found items">
+      <div class="search-field">
+        <label for="searchInput">Search</label>
+        <input type="text" id="searchInput" placeholder="e.g. blue backpack, AirPods, water bottle…" value="{{ search }}" autocomplete="off" aria-label="Search by keyword" />
+      </div>
+      <div class="search-field" style="max-width:210px;">
+        <label for="categorySelect">Category</label>
+        <select id="categorySelect" aria-label="Filter by category">
+          <option value="">All Categories</option>
+          {% set all_cats = ['Clothing & Apparel','Electronics','Books & Stationery','Bags & Backpacks','Sports Equipment','Jewelry & Accessories','Keys','Water Bottles','Other'] %}
+          {% for cat in all_cats %}
+            <option value="{{ cat }}" {% if cat == category %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label style="visibility:hidden; display:block; font-size:0.78rem;">Go</label>
+        <button class="btn btn-primary btn-sm" id="searchBtn" type="button">🔍 Search</button>
+      </div>
+      {% if search or category %}
+      <div>
+        <label style="visibility:hidden; display:block; font-size:0.78rem;">Clear</label>
+        <a href="{{ url_for('items') }}" class="btn btn-glass btn-sm">✕ Clear</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Result count -->
+    <p style="margin-bottom:24px; color:var(--white-40); font-size:0.88rem;" aria-live="polite">
+      {% if search or category %}
+        <strong style="color:var(--white-70);">{{ items|length }}</strong> result{{ 's' if items|length != 1 }}
+        {% if search %} for "<strong style="color:var(--accent);">{{ search }}</strong>"{% endif %}
+        {% if category %} in <strong style="color:var(--accent);">{{ category }}</strong>{% endif %}
+      {% else %}
+        Showing <strong style="color:var(--white-70);">{{ items|length }}</strong> item{{ 's' if items|length != 1 }}
+      {% endif %}
+    </p>
+
+    <!-- Items Grid -->
+    {% if items %}
+    <div class="items-grid" role="list" aria-label="Found items">
+      {% for item in items %}
+      <article class="card reveal reveal-delay-{{ (loop.index0 % 3) + 1 }}" role="listitem">
+        <div class="card-img-wrap">
+          {% if item.photo %}
+            <img class="card-img" src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Photo of {{ item.name }}" loading="lazy" />
+          {% elif item.placeholder_url %}
+            <img class="card-img" src="{{ item.placeholder_url }}" alt="Illustrative image for {{ item.category }}" loading="lazy" />
+          {% else %}
+            <div class="card-img-placeholder" aria-label="{{ item.category }} item">{{ item.emoji }}</div>
+          {% endif %}
+          <div class="card-img-overlay" aria-hidden="true"></div>
+        </div>
+        <div class="card-body">
+          <span class="card-category">{{ item.category }}</span>
+          <h3 class="card-title">{{ item.name }}</h3>
+          <div class="card-meta">
+            <span>📍 {{ item.location }}</span>
+            <span>📅 {{ item.date_found }}</span>
+          </div>
+          <p style="font-size:0.84rem; color:var(--white-40); margin-bottom:16px; line-height:1.5;">
+            {{ item.description[:90] }}{% if item.description|length > 90 %}…{% endif %}
+          </p>
+          <div class="card-actions">
+            <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-primary btn-sm">Claim This</a>
+            <button class="bookmark-btn" data-id="{{ item.id }}" aria-label="Bookmark {{ item.name }}" title="Save for later">🏷️</button>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state reveal" role="status">
+      <div class="empty-icon" aria-hidden="true">🔍</div>
+      <h3>No items found</h3>
+      <p>{% if search or category %}Try different keywords or clear your filters.{% else %}No approved items yet — check back soon!{% endif %}</p>
+      {% if search or category %}<a href="{{ url_for('items') }}" class="btn btn-primary" style="margin-top:20px;">Clear Filters</a>{% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const searchInput   = document.getElementById('searchInput');
+  const categorySelect = document.getElementById('categorySelect');
+  const searchBtn     = document.getElementById('searchBtn');
+
+  function doSearch() {
+    const q   = encodeURIComponent(searchInput.value.trim());
+    const cat = encodeURIComponent(categorySelect.value);
+    let url = "{{ url_for('items') }}";
+    const p = [];
+    if (q)   p.push(`q=${q}`);
+    if (cat) p.push(`category=${cat}`);
+    if (p.length) url += '?' + p.join('&');
+    window.location.href = url;
+  }
+
+  searchBtn.addEventListener('click', doSearch);
+  searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+  categorySelect.addEventListener('change', doSearch);
+</script>
+{% endblock %}

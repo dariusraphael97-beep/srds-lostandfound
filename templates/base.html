@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SRDS Lost & Found — Saddle River Day School's official lost and found portal." />
+  <title>{% block title %}SRDS Lost & Found{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-ring" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <nav aria-label="Main navigation">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo" aria-hidden="true">SR</div>
+        <div class="nav-title">
+          SRDS Lost &amp; Found
+          <span>Saddle River Day School</span>
+        </div>
+      </div>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="nav-links" id="navLinks" role="list">
+        <li><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+        <li><a href="{{ url_for('items') }}" class="{% if request.endpoint == 'items' %}active{% endif %}">Browse Items</a></li>
+        <li><a href="{{ url_for('report') }}" class="btn-nav {% if request.endpoint == 'report' %}active{% endif %}">+ Report Item</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode" title="Toggle theme">☀️</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container" role="alert" aria-live="polite">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">
+            {% if category == 'success' %}✓{% else %}⚠{% endif %}
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>
+      <strong>SRDS Lost &amp; Found</strong> &nbsp;&middot;&nbsp;
+      <span class="accent-text">Saddle River Day School — Go Rebels!</span> &nbsp;&middot;&nbsp;
+      Built for <strong>FBLA Website Coding &amp; Development 2025–2026</strong>
+    </p>
+    <p style="margin-top:8px; font-size:0.8rem;">Questions? Visit the front office or email administration.</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
