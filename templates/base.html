@@ -3,24 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SRDS Lost & Found — Saddle River Day School's official lost and found portal." />
+  <meta name="description" content="SRDS Lost & Found — Saddle River Day School's official lost and found portal for students and staff." />
   <title>{% block title %}SRDS Lost & Found{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
 
-  <!-- Custom cursor -->
+  <!-- Custom cursor (desktop only) -->
   <div class="cursor" aria-hidden="true"></div>
   <div class="cursor-ring" aria-hidden="true"></div>
+
+  <!-- Activity ticker -->
+  <div class="ticker-bar" aria-label="Recent activity">
+    <div class="ticker-inner">
+      <span class="ticker-label">🔔 Recent Activity</span>
+      <div class="ticker-track">
+        <div class="ticker-content">
+          <span>📦 Blue Nike Backpack was just reported found &nbsp;·&nbsp;</span>
+          <span>✅ AirPods Pro successfully claimed by owner &nbsp;·&nbsp;</span>
+          <span>📦 TI-84 Calculator reported at Math Hallway &nbsp;·&nbsp;</span>
+          <span>✅ Green Hydroflask reunited with owner &nbsp;·&nbsp;</span>
+          <span>📦 Soccer Cleats found near Athletic Fields &nbsp;·&nbsp;</span>
+          <span>✅ Gold Bracelet claimed from Gymnasium &nbsp;·&nbsp;</span>
+          <span>📦 Blue Nike Backpack was just reported found &nbsp;·&nbsp;</span>
+          <span>✅ AirPods Pro successfully claimed by owner &nbsp;·&nbsp;</span>
+          <span>📦 TI-84 Calculator reported at Math Hallway &nbsp;·&nbsp;</span>
+          <span>✅ Green Hydroflask reunited with owner &nbsp;·&nbsp;</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Navigation -->
   <nav aria-label="Main navigation">
     <div class="nav-inner">
+
+      <!-- Brand with SVG crest -->
       <div class="nav-brand">
-        <div class="nav-logo" aria-hidden="true">SR</div>
+        <div class="nav-crest" aria-hidden="true">
+          <img src="{{ url_for('static', filename='img/srds-crest.svg') }}" alt="SRDS Crest" width="44" height="44" />
+        </div>
         <div class="nav-title">
           SRDS Lost &amp; Found
-          <span>Saddle River Day School</span>
+          <span>Saddle River Day School · Est. 1957</span>
         </div>
       </div>
 
@@ -58,13 +83,20 @@
     {% block content %}{% endblock %}
   </main>
 
+  <!-- Footer -->
   <footer>
-    <p>
-      <strong>SRDS Lost &amp; Found</strong> &nbsp;&middot;&nbsp;
-      <span class="accent-text">Saddle River Day School — Go Rebels!</span> &nbsp;&middot;&nbsp;
-      Built for <strong>FBLA Website Coding &amp; Development 2025–2026</strong>
+    <div class="footer-crest" aria-hidden="true">
+      <img src="{{ url_for('static', filename='img/srds-crest.svg') }}" alt="" width="56" height="56" style="opacity:0.3; margin:0 auto 16px;" />
+    </div>
+    <p style="margin-bottom:6px;">
+      <strong>Saddle River Day School</strong> &nbsp;·&nbsp;
+      <span class="accent-text">Go Rebels!</span> &nbsp;·&nbsp;
+      147 Chestnut Ridge Rd, Saddle River, NJ
     </p>
-    <p style="margin-top:8px; font-size:0.8rem;">Questions? Visit the front office or email administration.</p>
+    <p style="margin-bottom:6px;">
+      <strong>SRDS Lost &amp; Found</strong> — Built for <span class="accent-text">FBLA Website Coding &amp; Development 2025–2026</span>
+    </p>
+    <p style="font-size:0.78rem; margin-top:12px;">Questions? Visit the front office or speak with your division's administrative assistant.</p>
   </footer>
 
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>

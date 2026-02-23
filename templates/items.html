@@ -81,6 +81,7 @@
             <div class="card-img-placeholder" aria-label="{{ item.category }} item">{{ item.emoji }}</div>
           {% endif %}
           <div class="card-img-overlay" aria-hidden="true"></div>
+          <div style="position:absolute; top:10px; right:10px;"><span class="days-badge" data-found="{{ item.date_found }}">🕐 …</span></div>
         </div>
         <div class="card-body">
           <span class="card-category">{{ item.category }}</span>
@@ -134,5 +135,15 @@
   searchBtn.addEventListener('click', doSearch);
   searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
   categorySelect.addEventListener('change', doSearch);
+
+  // Days since badges
+  document.querySelectorAll('.days-badge[data-found]').forEach(badge => {
+    const days = Math.floor((new Date() - new Date(badge.dataset.found)) / 86400000);
+    badge.classList.remove('fresh','old');
+    if (days === 0)      { badge.textContent = '🕐 Today';        badge.classList.add('fresh'); }
+    else if (days <= 3)  { badge.textContent = `🕐 ${days}d ago`; badge.classList.add('fresh'); }
+    else if (days <= 14) { badge.textContent = `🕐 ${days}d ago`; }
+    else                 { badge.textContent = `🕐 ${days}d ago`; badge.classList.add('old'); }
+  });
 </script>
 {% endblock %}
