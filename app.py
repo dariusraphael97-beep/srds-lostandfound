@@ -319,8 +319,10 @@ def init_db():
 # ─────────────────────────────────────────────
 import re as _re
 
-def smart_match(name, category, description, location, date_lost, db):
-    """Return top matches from found items with confidence scores and reasons."""
+def smart_match(name, category, description, location, date_lost, db, date_to=None):
+    """Return top matches from found items with confidence scores and reasons.
+    date_lost = start of range (or exact date), date_to = end of range (optional).
+    """
     query_words = set(_re.sub(r"[^a-z0-9 ]", "", (name + " " + description).lower()).split())
     stop_words  = {"a","an","the","is","in","at","of","and","or","it","i","my","was","with","found","lost","have"}
     query_words -= stop_words
@@ -348,18 +350,27 @@ def smart_match(name, category, description, location, date_lost, db):
             score += min(25, len(loc_words) * 12)
             reasons.append(f"Nearby location ({', '.join(list(loc_words)[:2])})")
 
-        # Date proximity (within 7 days)
+        # Date proximity — supports single date or range
         try:
             from datetime import datetime as _dt
-            dl = _dt.strptime(date_lost, "%Y-%m-%d")
-            df = _dt.strptime(d["date_found"], "%Y-%m-%d")
-            diff = abs((dl - df).days)
-            if diff == 0:
-                score += 20; reasons.append("Same day")
-            elif diff <= 2:
-                score += 15; reasons.append(f"{diff}d apart")
-            elif diff <= 7:
-                score += 8;  reasons.append(f"Within a week")
+            df  = _dt.strptime(d["date_found"], "%Y-%m-%d")
+            dl_start = _dt.strptime(date_lost, "%Y-%m-%d")
+            dl_end   = _dt.strptime(date_to, "%Y-%m-%d") if date_to else dl_start
+            # Check if found date falls within lost range (with 3-day buffer each side)
+            from datetime import timedelta
+            buffered_start = dl_start - timedelta(days=3)
+            buffered_end   = dl_end   + timedelta(days=3)
+            if buffered_start <= df <= buffered_end:
+                # Found date is inside the lost range
+                if dl_start <= df <= dl_end:
+                    score += 20; reasons.append("Found within your date range")
+                else:
+                    score += 12; reasons.append("Found near your date range")
+            else:
+                # Outside range — smaller score based on nearest edge
+                nearest = min(abs((df - dl_start).days), abs((df - dl_end).days))
+                if nearest <= 7:
+                    score += 6; reasons.append(f"Found ~{nearest}d from your range")
         except:
             pass
 
@@ -574,24 +585,26 @@ def lost_report():
         category    = request.form.get("category", "").strip()
         description = request.form.get("description", "").strip()
         location    = request.form.get("location", "").strip()
-        date_lost   = request.form.get("date_lost", "").strip()
+        date_from   = request.form.get("date_from", "").strip()
+        date_to     = request.form.get("date_to",   "").strip()
+        date_lost   = date_from  # keep compatibility — use start of range
         contact     = request.form.get("contact", "").strip()
         form_data   = dict(request.form)
 
-        if not all([name, category, description, location, date_lost, contact]):
+        if not all([name, category, description, location, date_from, date_to, contact]):
             flash("Please fill in all required fields.", "error")
             return redirect(url_for("lost_report"))
 
         db = get_db()
         db.execute(
             "INSERT INTO lost_reports (name, category, description, location, date_lost, contact, submitted) VALUES (?,?,?,?,?,?,?)",
-            (name, category, description, location, date_lost, contact,
+            (name, category, description, location, f"{date_from} to {date_to}", contact,
              datetime.now().strftime("%Y-%m-%d %H:%M"))
         )
         db.commit()
 
         # Run smart match
-        matches = smart_match(name, category, description, location, date_lost, db)
+        matches = smart_match(name, category, description, location, date_lost, db, date_to=date_to)
         return render_template("lost_report.html", matches=matches, form_data=form_data, submitted=True)
 
     return render_template("lost_report.html", matches=[], form_data={}, submitted=False)
@@ -680,9 +693,10 @@ def api_smart_match():
     category = data.get("category", "")
     desc     = data.get("description", "")
     location = data.get("location", "")
-    date     = data.get("date_lost", datetime.now().strftime("%Y-%m-%d"))
-    db       = get_db()
-    matches  = smart_match(name, category, desc, location, date, db)
+    date_from = data.get("date_from") or data.get("date_lost", datetime.now().strftime("%Y-%m-%d"))
+    date_to   = data.get("date_to")   or date_from
+    db        = get_db()
+    matches   = smart_match(name, category, desc, location, date_from, db, date_to=date_to)
     return jsonify(matches)
 
 @app.route("/api/claim", methods=["POST"])
@@ -729,7 +743,7 @@ def api_lost_report():
     db.execute(
         "INSERT INTO lost_reports (name, category, description, location, date_lost, contact, submitted) VALUES (?,?,?,?,?,?,?)",
         (data["name"], data["category"], data["description"], data["location"],
-         data["date_lost"], data["contact"], datetime.now().strftime("%Y-%m-%d %H:%M"))
+         data.get("date_lost",""), data["contact"], datetime.now().strftime("%Y-%m-%d %H:%M"))
     )
     db.commit()
     matches = smart_match(data["name"], data["category"], data["description"],

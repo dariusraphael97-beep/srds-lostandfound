@@ -54,8 +54,25 @@
           <input type="text" id="location" name="location" placeholder="e.g. Gym, Library, Cafeteria" required />
         </div>
         <div class="form-group">
-          <label for="date_lost">Date Lost <span class="required">*</span></label>
-          <input type="date" id="date_lost" name="date_lost" required />
+          <label>Approx. When Did You Last Have It? <span class="required">*</span></label>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+            <button type="button" class="range-preset" data-days="1">Today</button>
+            <button type="button" class="range-preset" data-days="3">Last 3 days</button>
+            <button type="button" class="range-preset" data-days="7">This week</button>
+            <button type="button" class="range-preset" data-days="14">Last 2 weeks</button>
+            <button type="button" class="range-preset" data-days="30">Last month</button>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <div style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--white-40); margin-bottom:5px;">From</div>
+              <input type="date" id="date_from" name="date_from" required />
+            </div>
+            <div>
+              <div style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--white-40); margin-bottom:5px;">To</div>
+              <input type="date" id="date_to" name="date_to" required />
+            </div>
+          </div>
+          <div id="range-label" style="font-size:0.75rem; color:var(--accent); margin-top:6px; min-height:16px;"></div>
         </div>
       </div>
 
@@ -167,7 +184,62 @@
   document.querySelectorAll('.two-col').forEach(el => {
     if (window.innerWidth < 540) el.style.gridTemplateColumns = '1fr';
   });
-  const dl = document.getElementById('date_lost');
-  if (dl) dl.max = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
+  const dateFrom = document.getElementById('date_from');
+  const dateTo   = document.getElementById('date_to');
+  if (dateFrom) { dateFrom.max = today; }
+  if (dateTo)   { dateTo.max   = today; }
+
+  // Default: last 7 days pre-selected
+  if (dateFrom && dateTo) {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    dateFrom.value = d.toISOString().split('T')[0];
+    dateTo.value   = today;
+    updateRangeLabel();
+  }
+
+  // Quick preset buttons
+  document.querySelectorAll('.range-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.range-preset').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const days = parseInt(btn.dataset.days);
+      const end  = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - (days - 1));
+      if (dateFrom) dateFrom.value = start.toISOString().split('T')[0];
+      if (dateTo)   dateTo.value   = end.toISOString().split('T')[0];
+      updateRangeLabel();
+    });
+  });
+
+  // Activate "This week" preset by default
+  document.querySelector('.range-preset[data-days="7"]')?.classList.add('active');
+
+  dateFrom?.addEventListener('change', () => { updateRangeLabel(); clearPresets(); });
+  dateTo?.addEventListener('change',   () => { updateRangeLabel(); clearPresets(); });
+
+  function clearPresets() {
+    document.querySelectorAll('.range-preset').forEach(b => b.classList.remove('active'));
+  }
+
+  function updateRangeLabel() {
+    const lbl = document.getElementById('range-label');
+    if (!lbl || !dateFrom?.value || !dateTo?.value) return;
+    const start = new Date(dateFrom.value + 'T00:00:00');
+    const end   = new Date(dateTo.value   + 'T00:00:00');
+    const diff  = Math.round((end - start) / 86400000);
+    if (diff < 0) {
+      lbl.textContent = '⚠ "From" date is after "To" date';
+      lbl.style.color = 'var(--error)';
+    } else if (diff === 0) {
+      lbl.textContent = 'Searching on 1 specific day';
+      lbl.style.color = 'var(--accent)';
+    } else {
+      lbl.textContent = `Searching across ${diff + 1} day${diff > 0 ? 's' : ''}`;
+      lbl.style.color = 'var(--accent)';
+    }
+  }
 </script>
 {% endblock %}
