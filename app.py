@@ -97,6 +97,14 @@ def init_db():
             keyword     TEXT    NOT NULL,
             created     TEXT    NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS item_variants (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id     INTEGER NOT NULL,
+            variant     TEXT    NOT NULL,
+            quantity    INTEGER DEFAULT 1,
+            FOREIGN KEY (item_id) REFERENCES items(id)
+        );
     """)
     db.commit()
 
@@ -112,174 +120,146 @@ def init_db():
             db.execute(sql)
     db.commit()
 
+    # Create item_variants table if missing
+    db.execute("""CREATE TABLE IF NOT EXISTS item_variants (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        variant TEXT NOT NULL,
+        quantity INTEGER DEFAULT 1,
+        FOREIGN KEY (item_id) REFERENCES items(id)
+    )""")
+    db.commit()
+
     # Seed sample items if table is empty
     count = db.execute("SELECT COUNT(*) FROM items").fetchone()[0]
     if count == 0:
-        # Sample items with accurate specific photos, quantities, and detailed descriptions
-        # Columns: name, category, description, location, date_found, photo_url, quantity, item_detail
-        sample_items = [
-            (
-                "AirPods Pro (2nd Gen) — Left Bud",
-                "Electronics",
-                "Single left AirPod Pro (2nd Generation). White, fits snugly in ear. No case. Found on gym bleacher seat after 3rd period.",
-                "Gymnasium — Bleachers Row C",
-                "2026-02-10",
-                "https://images.unsplash.com/photo-1603351154351-5e2d0600bb77?w=600&q=80",
-                1,
-                "Model: AirPods Pro 2nd Gen · Bud: LEFT · Case: No · Serial: Unknown"
-            ),
-            (
-                "AirPods Pro (2nd Gen) — Right Bud",
-                "Electronics",
-                "Single right AirPod Pro (2nd Generation). White, slightly scuffed tip. No case. Found near the water fountains in North Hall.",
-                "North Hall — Water Fountain Area",
-                "2026-02-12",
-                "https://images.unsplash.com/photo-1603351154351-5e2d0600bb77?w=600&q=80",
-                1,
-                "Model: AirPods Pro 2nd Gen · Bud: RIGHT · Case: No · Serial: Unknown"
-            ),
-            (
-                "AirPods (3rd Gen) — Full Set in Case",
-                "Electronics",
-                "Full set of AirPods 3rd Generation in white MagSafe charging case. Case has a small blue sticker on the back.",
-                "Library — Study Table 4",
-                "2026-02-14",
-                "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80",
-                1,
-                "Model: AirPods 3rd Gen · Both buds present · Case: Yes (MagSafe) · Sticker on case"
-            ),
-            (
-                "Blue Nike Backpack",
-                "Bags & Backpacks",
-                "Large blue Nike Brasilia backpack with red drawstring keychain. Contains spiral notebooks and a pencil case. Left in main hallway.",
-                "Main Hallway — near Lockers B12",
-                "2026-02-11",
-                "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
-                1,
-                "Brand: Nike Brasilia · Color: Blue · Contents: Notebooks, pencil case"
-            ),
-            (
-                "TI-84 Plus CE Calculator",
-                "Electronics",
-                "Black Texas Instruments TI-84 Plus CE graphing calculator. Name written in marker on back: J. Morris. Found on desk after class.",
-                "Math Department — Room 112",
-                "2026-02-13",
-                "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80",
-                1,
-                "Model: TI-84 Plus CE · Color: Black · Name on back: J. Morris"
-            ),
-            (
-                "TI-84 Plus CE Calculators (×2)",
-                "Electronics",
-                "Two identical black TI-84 Plus CE calculators found together in a desk drawer after class. No names written on either.",
-                "Science Wing — Room 204",
-                "2026-02-15",
-                "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80",
-                2,
-                "Model: TI-84 Plus CE · Color: Black × 2 · No names written"
-            ),
-            (
-                "Green Hydro Flask (32oz)",
-                "Water Bottles",
-                "32oz Hydro Flask in forest green with multiple stickers on the side including a sunflower and a mountain sticker.",
-                "Library — Study Room 2",
-                "2026-02-10",
-                "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80",
-                1,
-                "Brand: Hydro Flask · Size: 32oz · Color: Forest Green · Stickers: Sunflower, mountain"
-            ),
-            (
-                "Black Champion Zip Hoodie",
-                "Clothing & Apparel",
-                "Black Champion zip-up hoodie, size Medium. Left on a cafeteria chair after lunch. No name inside.",
-                "Cafeteria — Table Area",
-                "2026-02-12",
-                "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80",
-                1,
-                "Brand: Champion · Color: Black · Size: Medium · Style: Zip-up"
-            ),
-            (
-                "Set of House Keys",
-                "Keys",
-                "Set of 3 keys on a silver ring with a small blue rubber keychain shaped like a star. Found near the front entrance.",
-                "Front Office — Main Entrance",
-                "2026-02-09",
-                "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
-                1,
-                "Keys: 3 total · Keychain: Blue star rubber · Ring: Silver"
-            ),
-            (
-                "Adidas Soccer Cleats (Size 10)",
-                "Sports Equipment",
-                "Black and white Adidas Copa soccer cleats, men's size 10. Found in a bag near the athletic field entrance after practice.",
-                "Athletic Fields — Equipment Room",
-                "2026-02-11",
-                "https://images.unsplash.com/photo-1511886929837-354d827aae26?w=600&q=80",
-                1,
-                "Brand: Adidas Copa · Color: Black & White · Size: Men's 10 · Condition: Used"
-            ),
-            (
-                "Gold Heart Charm Bracelet",
-                "Jewelry & Accessories",
-                "Thin gold chain bracelet with a small heart charm. Delicate clasp. Found on the gymnasium floor after morning assembly.",
-                "Gymnasium — Main Floor",
-                "2026-02-13",
-                "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80",
-                1,
-                "Material: Gold tone · Charm: Small heart · Clasp: Lobster claw · Length: ~7 inches"
-            ),
-            (
-                "Ray-Ban Wayfarer Sunglasses",
-                "Jewelry & Accessories",
-                "Classic black Ray-Ban Original Wayfarer sunglasses in a black soft case. Found on the outdoor lunch bench.",
-                "Outdoor Lunch Area — Bench 3",
-                "2026-02-14",
-                "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80",
-                1,
-                "Brand: Ray-Ban · Model: Original Wayfarer RB2140 · Color: Black · Case: Yes"
-            ),
-            (
-                "Grey North Face Puffer Jacket",
-                "Clothing & Apparel",
-                "Grey North Face Nuptse puffer jacket, size Large. Found hanging on a chair in a classroom. No name tag inside.",
-                "Upper School — Room 304",
-                "2026-02-15",
-                "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80",
-                1,
-                "Brand: The North Face · Style: Nuptse Puffer · Color: Grey · Size: Large"
-            ),
-            (
-                "Apple MacBook USB-C Charger",
-                "Electronics",
-                "Apple 65W USB-C MacBook charger with white cable. No name on it. Found plugged into an outlet in the library charging station.",
-                "Library — Charging Station",
-                "2026-02-16",
-                "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&q=80",
-                1,
-                "Brand: Apple · Wattage: 65W · Connector: USB-C · Cable included: Yes"
-            ),
-            (
-                "Purple Spiral Notebook",
-                "Books & Stationery",
-                "Purple spiral-bound notebook, college rule. Name written inside front cover: A. Chen. Appears to contain History notes.",
-                "Cafeteria — Table 7",
-                "2026-02-10",
-                "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=600&q=80",
-                1,
-                "Color: Purple · Style: Spiral · Rule: College · Name inside: A. Chen · Subject: History"
-            ),
-        ]
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
-        for item in sample_items:
-            db.execute(
-                """INSERT INTO items
-                   (name, category, description, location, date_found, photo_url, quantity, item_detail, status, submitted)
-                   VALUES (?,?,?,?,?,?,?,?,'approved',?)""",
-                (*item, now)
+
+        items_data = [
+            ("Apple AirPods",
+             "Electronics",
+             "Multiple Apple AirPods found across campus. Click View Details to see each variant — model, which bud(s), case included, and how many of each are still unclaimed.",
+             "Various Locations on Campus",
+             "2026-02-10",
+             "url:https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80",
+             5,
+             "Brand: Apple · Multiple models · See variants below"),
+
+            ("Blue Nike Backpack",
+             "Bags & Backpacks",
+             "Large blue Nike Brasilia backpack with a red drawstring keychain. Contains spiral notebooks and a pencil case.",
+             "Main Hallway — near Lockers B12",
+             "2026-02-11",
+             "url:https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
+             1, "Brand: Nike Brasilia · Color: Blue"),
+
+            ("TI-84 Plus CE Calculator",
+             "Electronics",
+             "Black Texas Instruments TI-84 Plus CE graphing calculator. Name written in marker on back: J. Morris.",
+             "Math Department — Room 112",
+             "2026-02-13",
+             "url:https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80",
+             2, "Model: TI-84 Plus CE · Color: Black"),
+
+            ("Green Hydro Flask (32oz)",
+             "Water Bottles",
+             "32oz Hydro Flask in forest green with stickers on the side — sunflower and mountain.",
+             "Library — Study Room 2",
+             "2026-02-10",
+             "url:https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80",
+             1, "Brand: Hydro Flask · Size: 32oz · Color: Forest Green"),
+
+            ("Black Champion Zip Hoodie",
+             "Clothing & Apparel",
+             "Black Champion zip-up hoodie, size Medium. Left on a cafeteria chair after lunch.",
+             "Cafeteria — Table Area",
+             "2026-02-12",
+             "url:https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80",
+             1, "Brand: Champion · Color: Black · Size: Medium"),
+
+            ("Set of House Keys",
+             "Keys",
+             "Set of 3 keys on a silver ring with a small blue star-shaped rubber keychain.",
+             "Front Office — Main Entrance",
+             "2026-02-09",
+             "url:https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
+             1, "Keys: 3 total · Keychain: Blue star"),
+
+            ("Adidas Soccer Cleats",
+             "Sports Equipment",
+             "Black and white Adidas Copa soccer cleats, men's size 10. Found near equipment room.",
+             "Athletic Fields — Equipment Room",
+             "2026-02-11",
+             "url:https://images.unsplash.com/photo-1511886929837-354d827aae26?w=600&q=80",
+             1, "Brand: Adidas Copa · Size: Men's 10"),
+
+            ("Gold Heart Charm Bracelet",
+             "Jewelry & Accessories",
+             "Thin gold chain bracelet with a small heart charm. Found on the gymnasium floor.",
+             "Gymnasium — Main Floor",
+             "2026-02-13",
+             "url:https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80",
+             1, "Material: Gold tone · Charm: Heart"),
+
+            ("Ray-Ban Wayfarer Sunglasses",
+             "Jewelry & Accessories",
+             "Classic black Ray-Ban Original Wayfarer sunglasses in a soft case.",
+             "Outdoor Lunch Area — Bench 3",
+             "2026-02-14",
+             "url:https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80",
+             1, "Brand: Ray-Ban · Model: Wayfarer RB2140"),
+
+            ("Grey North Face Puffer Jacket",
+             "Clothing & Apparel",
+             "Grey North Face Nuptse puffer jacket, size Large. Found hanging on a chair.",
+             "Upper School — Room 304",
+             "2026-02-15",
+             "url:https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80",
+             1, "Brand: The North Face · Style: Nuptse · Size: Large"),
+
+            ("Apple MacBook USB-C Charger",
+             "Electronics",
+             "Apple 65W USB-C MacBook charger with white cable. Found plugged in at the library.",
+             "Library — Charging Station",
+             "2026-02-16",
+             "url:https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&q=80",
+             1, "Brand: Apple · Wattage: 65W · USB-C"),
+
+            ("Purple Spiral Notebook",
+             "Books & Stationery",
+             "Purple spiral notebook, college ruled. Name inside: A. Chen. History notes throughout.",
+             "Cafeteria — Table 7",
+             "2026-02-10",
+             "url:https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=600&q=80",
+             1, "Color: Purple · Ruled: College · Name: A. Chen"),
+        ]
+
+        airpods_id = None
+        for row in items_data:
+            name, cat, desc, loc, date, photo, qty, detail = row
+            cur = db.execute(
+                "INSERT INTO items (name, category, description, location, date_found, photo_url, quantity, item_detail, status, submitted) VALUES (?,?,?,?,?,?,?,?,'approved',?)",
+                (name, cat, desc, loc, date, photo, qty, detail, now)
             )
+            if name == "Apple AirPods":
+                airpods_id = cur.lastrowid
+
+        if airpods_id:
+            variants = [
+                ("AirPods Pro 2nd Gen — Left bud only, no case",   1),
+                ("AirPods Pro 2nd Gen — Right bud only, no case",  1),
+                ("AirPods Pro 2nd Gen — Both buds, no case",       1),
+                ("AirPods 3rd Gen — Both buds + MagSafe case",     1),
+                ("AirPods 2nd Gen — Left bud only, no case",       1),
+            ]
+            for variant, qty in variants:
+                db.execute(
+                    "INSERT INTO item_variants (item_id, variant, quantity) VALUES (?,?,?)",
+                    (airpods_id, variant, qty)
+                )
+
         db.commit()
     db.close()
-
 
 def enrich_items(rows):
     """Add emoji; photo_url is already in the DB column. Fall back to category photo."""
@@ -376,6 +356,20 @@ def report():
         return redirect(url_for("index"))
 
     return render_template("report.html")
+
+
+@app.route("/item/<int:item_id>")
+def item_detail(item_id):
+    db = get_db()
+    row = db.execute("SELECT * FROM items WHERE id=? AND status='approved'", (item_id,)).fetchone()
+    if not row:
+        flash("Item not found.", "error")
+        return redirect(url_for("items"))
+    item = enrich_items([row])[0]
+    variants = db.execute(
+        "SELECT * FROM item_variants WHERE item_id=? ORDER BY id", (item_id,)
+    ).fetchall()
+    return render_template("item_detail.html", item=item, variants=variants)
 
 
 @app.route("/claim/<int:item_id>", methods=["GET", "POST"])

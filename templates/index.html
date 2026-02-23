@@ -121,15 +121,11 @@
           <div style="position:absolute; top:10px; right:10px;">
             <span class="days-badge fresh" data-found="{{ item.date_found }}">🕐 loading…</span>
           </div>
-          {% if item.quantity and item.quantity > 1 %}
-          <div style="position:absolute; top:10px; left:10px;">
-            <span style="background:rgba(74,127,212,0.9); color:white; font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:100px; backdrop-filter:blur(8px);">×{{ item.quantity }}</span>
-          </div>
-          {% endif %}
+
         </div>
         <div class="card-body">
           <span class="card-category">{{ item.category }}</span>
-          <h3 class="card-title">{{ item.name }}</h3>
+          <a href="{{ url_for('item_detail', item_id=item.id) }}" style="text-decoration:none;"><h3 class="card-title" style="transition:color var(--transition);" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color=''">{{ item.name }}</h3></a>
           <div class="card-meta">
             <span>📍 {{ item.location }}</span>
             <span>📅 {{ item.date_found }}</span>

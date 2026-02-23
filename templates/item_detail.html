@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}{{ item.name }} — SRDS Lost & Found{% endblock %}
+
+{% block content %}
+<header class="page-header" aria-labelledby="detail-heading">
+  <div class="container">
+    <a href="{{ url_for('items') }}" style="display:inline-flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--white-40); margin-bottom:16px; transition:color var(--transition);" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--white-40)'">← Back to all items</a>
+    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:14px;">{{ item.category }}</div>
+    <h1 id="detail-heading" style="font-size:clamp(1.8rem,4vw,3rem);">{{ item.name }}</h1>
+    <p>Found at {{ item.location }}</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="item-detail-grid" style="max-width:1060px; margin:0 auto;">
+
+      <!-- Image side -->
+      <div class="reveal">
+        <div class="item-detail-img">
+          {% if item.photo_url %}
+            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" />
+          {% elif item.photo %}
+            <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Photo of {{ item.name }}" />
+          {% else %}
+            <div class="no-photo">{{ item.emoji }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Quick details -->
+        <div style="margin-top:20px; background:rgba(13,27,62,0.8); border:1px solid var(--white-10); border-radius:var(--radius); padding:24px; backdrop-filter:blur(16px);">
+          <div class="detail-field">
+            <div class="detail-label">Location Found</div>
+            <div class="detail-value">📍 {{ item.location }}</div>
+          </div>
+          <div class="detail-field">
+            <div class="detail-label">Date Found</div>
+            <div class="detail-value">📅 {{ item.date_found }} <span class="days-badge" data-found="{{ item.date_found }}" style="margin-left:8px;">…</span></div>
+          </div>
+          <div class="detail-field">
+            <div class="detail-label">Total Unclaimed</div>
+            <div class="detail-value" style="font-size:1.4rem; font-family:'Cormorant Garamond',serif; font-weight:700; color:var(--accent);">
+              {{ item.quantity }} item{{ 's' if item.quantity != 1 }} unclaimed
+            </div>
+          </div>
+          {% if item.item_detail %}
+          <div class="detail-field">
+            <div class="detail-label">Specs</div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+              {% for part in item.item_detail.split(' · ') %}
+              <span style="font-size:0.74rem; background:rgba(74,127,212,0.1); border:1px solid rgba(74,127,212,0.2); color:var(--accent); padding:4px 12px; border-radius:100px;">{{ part }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Info side -->
+      <div class="reveal reveal-delay-2">
+        <h2 style="font-size:1.5rem; margin-bottom:16px;">About This Item</h2>
+        <p style="color:var(--white-70); line-height:1.8; margin-bottom:32px;">{{ item.description }}</p>
+
+        <!-- Variants table (shown when variants exist, e.g. AirPods) -->
+        {% if variants %}
+        <div style="margin-bottom:32px;">
+          <h3 style="font-size:1.2rem; margin-bottom:16px; display:flex; align-items:center; gap:10px;">
+            Variants Found
+            <span style="font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); background:rgba(74,127,212,0.1); padding:3px 10px; border-radius:100px; border:1px solid rgba(74,127,212,0.2);">{{ variants|length }} types</span>
+          </h3>
+          <div style="border:1px solid var(--white-10); border-radius:var(--radius); overflow:hidden;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+              <thead>
+                <tr style="background:var(--white-05);">
+                  <th style="text-align:left; padding:12px 16px; color:var(--white-40); font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">#</th>
+                  <th style="text-align:left; padding:12px 16px; color:var(--white-40); font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">Variant / Description</th>
+                  <th style="text-align:center; padding:12px 16px; color:var(--white-40); font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">Unclaimed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for v in variants %}
+                <tr style="border-top:1px solid var(--white-05); transition:background var(--transition);" onmouseover="this.style.background='var(--white-05)'" onmouseout="this.style.background=''">
+                  <td style="padding:14px 16px; color:var(--white-40);">{{ loop.index }}</td>
+                  <td style="padding:14px 16px; color:var(--white);">{{ v.variant }}</td>
+                  <td style="padding:14px 16px; text-align:center;">
+                    <span style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:{% if v.quantity > 0 %}rgba(74,127,212,0.15); color:var(--accent); border:1px solid rgba(74,127,212,0.3){% else %}rgba(34,197,94,0.1); color:var(--success); border:1px solid rgba(34,197,94,0.2){% endif %}; font-weight:700; font-size:0.9rem;">
+                      {% if v.quantity > 0 %}{{ v.quantity }}{% else %}✓{% endif %}
+                    </span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:0.78rem; color:var(--white-40); margin-top:10px;">✓ = claimed &nbsp;·&nbsp; Number = qty still unclaimed</p>
+        </div>
+        {% endif %}
+
+        <!-- Claim CTA -->
+        <div style="background:linear-gradient(135deg, rgba(74,127,212,0.12), rgba(26,58,143,0.1)); border:1px solid rgba(74,127,212,0.2); border-radius:var(--radius); padding:24px;">
+          <h3 style="font-size:1.1rem; margin-bottom:8px; color:var(--white);">Is this yours?</h3>
+          <p style="font-size:0.88rem; color:var(--white-70); margin-bottom:18px; line-height:1.6;">
+            Submit a claim with your student ID and we'll verify and arrange pickup.
+            Be specific — include any identifying details like serial numbers or personalization.
+          </p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-primary">📬 Submit a Claim</a>
+            <button class="bookmark-btn" data-id="{{ item.id }}" style="width:auto; padding:0 16px;" aria-label="Bookmark this item">🏷️ Save</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.days-badge[data-found]').forEach(badge => {
+    const days = Math.floor((new Date() - new Date(badge.dataset.found)) / 86400000);
+    badge.classList.remove('fresh','old');
+    if (days === 0)      { badge.textContent = '🕐 Today';        badge.classList.add('fresh'); }
+    else if (days <= 3)  { badge.textContent = `🕐 ${days}d ago`; badge.classList.add('fresh'); }
+    else if (days <= 14) { badge.textContent = `🕐 ${days}d ago`; }
+    else                 { badge.textContent = `🕐 ${days}d ago`; badge.classList.add('old'); }
+  });
+</script>
+{% endblock %}

@@ -85,7 +85,7 @@
         </div>
         <div class="card-body">
           <span class="card-category">{{ item.category }}</span>
-          <h3 class="card-title">{{ item.name }}</h3>
+          <a href="{{ url_for('item_detail', item_id=item.id) }}" style="text-decoration:none;"><h3 class="card-title" style="transition:color var(--transition);" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color=''">{{ item.name }}</h3></a>
           <div class="card-meta">
             <span>📍 {{ item.location }}</span>
             <span>📅 {{ item.date_found }}</span>
@@ -93,8 +93,23 @@
           <p style="font-size:0.84rem; color:var(--white-40); margin-bottom:16px; line-height:1.5;">
             {{ item.description[:90] }}{% if item.description|length > 90 %}…{% endif %}
           </p>
+          <!-- Quantity unclaimed bar -->
+          {% if item.quantity and item.quantity > 0 %}
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:9px 12px; background:rgba(74,127,212,0.07); border:1px solid rgba(74,127,212,0.15); border-radius:var(--radius-sm); margin-bottom:12px; font-size:0.78rem;">
+            <span style="color:var(--white-70); font-weight:600;">
+              <span style="color:var(--accent); font-size:1rem; font-weight:700; font-family:'Cormorant Garamond',serif;">{{ item.quantity }}</span>
+              &nbsp;unclaimed item{{ 's' if item.quantity != 1 }}
+            </span>
+            {% if item.quantity == 1 %}
+              <span style="color:var(--success); font-size:0.7rem; font-weight:600;">● Available</span>
+            {% else %}
+              <span style="color:var(--warning); font-size:0.7rem; font-weight:600;">● Multiple found</span>
+            {% endif %}
+          </div>
+          {% endif %}
           <div class="card-actions">
-            <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-primary btn-sm">Claim This</a>
+            <a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-primary btn-sm">View Details</a>
+            <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-glass btn-sm">Claim</a>
             <button class="bookmark-btn" data-id="{{ item.id }}" aria-label="Bookmark {{ item.name }}" title="Save for later">🏷️</button>
           </div>
         </div>
