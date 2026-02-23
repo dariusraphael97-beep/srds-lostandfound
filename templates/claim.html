@@ -18,10 +18,10 @@
       <div class="reveal">
         <h2 style="margin-bottom:20px; font-size:1.6rem;">Item You're Claiming</h2>
         <div class="item-detail-img">
-          {% if item.photo and not item.photo.startswith('url:') %}
+          {% if item.photo %}
             <img src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Photo of {{ item.name }}" />
           {% elif item.photo_url %}
-            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" />
+            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" style="width:100%;height:400px;object-fit:cover;" />
           {% else %}
             <div class="no-photo" aria-label="No photo">{{ item.emoji }}</div>
           {% endif %}
@@ -30,6 +30,19 @@
           <span class="card-category" style="margin-bottom:14px; display:inline-flex;">{{ item.category }}</span>
           <h3 style="font-size:1.6rem; margin-bottom:18px; color:var(--white);">{{ item.name }}</h3>
           <div class="detail-field"><span class="detail-label">Description</span><span class="detail-value">{{ item.description }}</span></div>
+          {% if item.item_detail %}
+          <div class="detail-field">
+            <span class="detail-label">Item Specs</span>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
+              {% for part in item.item_detail.split(' · ') %}
+              <span style="font-size:0.75rem; background:rgba(74,127,212,0.12); border:1px solid rgba(74,127,212,0.25); color:var(--accent); padding:4px 12px; border-radius:100px;">{{ part }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          {% if item.quantity and item.quantity > 1 %}
+          <div class="detail-field"><span class="detail-label">Quantity Found</span><span class="detail-value" style="color:var(--accent); font-weight:700;">×{{ item.quantity }} items</span></div>
+          {% endif %}
           <div class="detail-field"><span class="detail-label">Found Location</span><span class="detail-value">📍 {{ item.location }}</span></div>
           <div class="detail-field"><span class="detail-label">Date Found</span><span class="detail-value">📅 {{ item.date_found }}</span></div>
         </div>

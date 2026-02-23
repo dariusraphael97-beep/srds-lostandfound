@@ -109,7 +109,7 @@
       {% for item in recent %}
       <article class="card reveal reveal-delay-{{ (loop.index0 % 3) + 1 }}" role="listitem">
         <div class="card-img-wrap">
-          {% if item.photo and not item.photo.startswith('url:') %}
+          {% if item.photo %}
             <img class="card-img" src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Photo of {{ item.name }}" loading="lazy" />
           {% elif item.photo_url %}
             <img class="card-img" src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" loading="lazy" />
@@ -121,6 +121,11 @@
           <div style="position:absolute; top:10px; right:10px;">
             <span class="days-badge fresh" data-found="{{ item.date_found }}">🕐 loading…</span>
           </div>
+          {% if item.quantity and item.quantity > 1 %}
+          <div style="position:absolute; top:10px; left:10px;">
+            <span style="background:rgba(74,127,212,0.9); color:white; font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:100px; backdrop-filter:blur(8px);">×{{ item.quantity }}</span>
+          </div>
+          {% endif %}
         </div>
         <div class="card-body">
           <span class="card-category">{{ item.category }}</span>
@@ -129,6 +134,13 @@
             <span>📍 {{ item.location }}</span>
             <span>📅 {{ item.date_found }}</span>
           </div>
+{% if item.item_detail %}
+          <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px;">
+            {% for part in item.item_detail.split(' · ') %}
+            <span style="font-size:0.68rem; background:var(--white-05); border:1px solid var(--white-10); color:var(--white-70); padding:3px 9px; border-radius:100px;">{{ part }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
           <p style="font-size:0.84rem; color:var(--white-40); margin-bottom:16px; line-height:1.5;">
             {{ item.description[:80] }}{% if item.description|length > 80 %}…{% endif %}
           </p>

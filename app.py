@@ -72,6 +72,9 @@ def init_db():
             location    TEXT    NOT NULL,
             date_found  TEXT    NOT NULL,
             photo       TEXT    DEFAULT NULL,
+            photo_url   TEXT    DEFAULT NULL,
+            quantity    INTEGER DEFAULT 1,
+            item_detail TEXT    DEFAULT NULL,
             status      TEXT    DEFAULT 'pending',
             submitted   TEXT    NOT NULL
         );
@@ -97,29 +100,181 @@ def init_db():
     """)
     db.commit()
 
+    # Run migrations for existing databases (adds new columns if missing)
+    existing_cols = [r[1] for r in db.execute("PRAGMA table_info(items)").fetchall()]
+    migrations = [
+        ("photo_url",    "ALTER TABLE items ADD COLUMN photo_url   TEXT    DEFAULT NULL"),
+        ("quantity",     "ALTER TABLE items ADD COLUMN quantity     INTEGER DEFAULT 1"),
+        ("item_detail",  "ALTER TABLE items ADD COLUMN item_detail  TEXT    DEFAULT NULL"),
+    ]
+    for col, sql in migrations:
+        if col not in existing_cols:
+            db.execute(sql)
+    db.commit()
+
     # Seed sample items if table is empty
     count = db.execute("SELECT COUNT(*) FROM items").fetchone()[0]
     if count == 0:
-        # Each item has a specific matching Unsplash photo URL stored as the photo field
-        # We prefix with "url:" so the template knows to use it as a direct URL vs a local file
+        # Sample items with accurate specific photos, quantities, and detailed descriptions
+        # Columns: name, category, description, location, date_found, photo_url, quantity, item_detail
         sample_items = [
-            ("Blue Nike Backpack",       "Bags & Backpacks",     "Large blue Nike backpack with a red keychain. Several notebooks inside.",              "Main Hallway — near Lockers",    "2025-01-15", "url:https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80"),
-            ("Apple AirPods Pro",        "Electronics",          "White AirPods Pro in a white charging case. Case has a small scratch on the lid.",     "Gym Bleachers",                  "2025-01-16", "url:https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80"),
-            ("Green Hydroflask",         "Water Bottles",        "32oz Hydroflask in forest green with stickers on the side.",                           "Library Study Room 2",           "2025-01-17", "url:https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80"),
-            ("Black Champion Hoodie",    "Clothing & Apparel",   "Black Champion zip-up hoodie, size Medium. Left in the cafeteria after lunch.",        "Cafeteria",                      "2025-01-18", "url:https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80"),
-            ("Set of House Keys",        "Keys",                 "3 keys on a silver ring with a small blue rubber keychain.",                           "Front Office Entrance",          "2025-01-19", "url:https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"),
-            ("TI-84 Calculator",         "Electronics",          "TI-84 Plus CE graphing calculator. Name on back in permanent marker: J. Morris.",      "Math Department Hallway",        "2025-01-20", "url:https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80"),
-            ("Soccer Cleats",            "Sports Equipment",     "Black and white Adidas soccer cleats, size 10. Found near the athletic fields.",       "Athletic Fields — Equipment Rm", "2025-01-21", "url:https://images.unsplash.com/photo-1511886929837-354d827aae26?w=600&q=80"),
-            ("Gold Bracelet",            "Jewelry & Accessories","Thin gold chain bracelet with a small heart charm. Found on the gym floor.",           "Gymnasium",                      "2025-01-22", "url:https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80"),
-            ("Ray-Ban Sunglasses",       "Jewelry & Accessories","Classic black Ray-Ban Wayfarer sunglasses in a soft case.",                            "Outdoor Lunch Area",             "2025-01-23", "url:https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80"),
-            ("Grey North Face Jacket",   "Clothing & Apparel",   "Grey North Face puffer jacket, size Large. Found hanging on a chair.",                 "Science Wing — Room 204",        "2025-01-24", "url:https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80"),
-            ("MacBook Charger",          "Electronics",          "Apple 65W USB-C MacBook charger with a white cable. No name on it.",                   "Library — Charging Station",     "2025-01-25", "url:https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&q=80"),
-            ("Spiral Notebook",          "Books & Stationery",   "Purple spiral notebook with History notes inside. Name inside cover: A. Chen.",        "Cafeteria — Table 7",            "2025-01-26", "url:https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=600&q=80"),
+            (
+                "AirPods Pro (2nd Gen) — Left Bud",
+                "Electronics",
+                "Single left AirPod Pro (2nd Generation). White, fits snugly in ear. No case. Found on gym bleacher seat after 3rd period.",
+                "Gymnasium — Bleachers Row C",
+                "2026-02-10",
+                "https://images.unsplash.com/photo-1603351154351-5e2d0600bb77?w=600&q=80",
+                1,
+                "Model: AirPods Pro 2nd Gen · Bud: LEFT · Case: No · Serial: Unknown"
+            ),
+            (
+                "AirPods Pro (2nd Gen) — Right Bud",
+                "Electronics",
+                "Single right AirPod Pro (2nd Generation). White, slightly scuffed tip. No case. Found near the water fountains in North Hall.",
+                "North Hall — Water Fountain Area",
+                "2026-02-12",
+                "https://images.unsplash.com/photo-1603351154351-5e2d0600bb77?w=600&q=80",
+                1,
+                "Model: AirPods Pro 2nd Gen · Bud: RIGHT · Case: No · Serial: Unknown"
+            ),
+            (
+                "AirPods (3rd Gen) — Full Set in Case",
+                "Electronics",
+                "Full set of AirPods 3rd Generation in white MagSafe charging case. Case has a small blue sticker on the back.",
+                "Library — Study Table 4",
+                "2026-02-14",
+                "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80",
+                1,
+                "Model: AirPods 3rd Gen · Both buds present · Case: Yes (MagSafe) · Sticker on case"
+            ),
+            (
+                "Blue Nike Backpack",
+                "Bags & Backpacks",
+                "Large blue Nike Brasilia backpack with red drawstring keychain. Contains spiral notebooks and a pencil case. Left in main hallway.",
+                "Main Hallway — near Lockers B12",
+                "2026-02-11",
+                "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
+                1,
+                "Brand: Nike Brasilia · Color: Blue · Contents: Notebooks, pencil case"
+            ),
+            (
+                "TI-84 Plus CE Calculator",
+                "Electronics",
+                "Black Texas Instruments TI-84 Plus CE graphing calculator. Name written in marker on back: J. Morris. Found on desk after class.",
+                "Math Department — Room 112",
+                "2026-02-13",
+                "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80",
+                1,
+                "Model: TI-84 Plus CE · Color: Black · Name on back: J. Morris"
+            ),
+            (
+                "TI-84 Plus CE Calculators (×2)",
+                "Electronics",
+                "Two identical black TI-84 Plus CE calculators found together in a desk drawer after class. No names written on either.",
+                "Science Wing — Room 204",
+                "2026-02-15",
+                "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80",
+                2,
+                "Model: TI-84 Plus CE · Color: Black × 2 · No names written"
+            ),
+            (
+                "Green Hydro Flask (32oz)",
+                "Water Bottles",
+                "32oz Hydro Flask in forest green with multiple stickers on the side including a sunflower and a mountain sticker.",
+                "Library — Study Room 2",
+                "2026-02-10",
+                "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80",
+                1,
+                "Brand: Hydro Flask · Size: 32oz · Color: Forest Green · Stickers: Sunflower, mountain"
+            ),
+            (
+                "Black Champion Zip Hoodie",
+                "Clothing & Apparel",
+                "Black Champion zip-up hoodie, size Medium. Left on a cafeteria chair after lunch. No name inside.",
+                "Cafeteria — Table Area",
+                "2026-02-12",
+                "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80",
+                1,
+                "Brand: Champion · Color: Black · Size: Medium · Style: Zip-up"
+            ),
+            (
+                "Set of House Keys",
+                "Keys",
+                "Set of 3 keys on a silver ring with a small blue rubber keychain shaped like a star. Found near the front entrance.",
+                "Front Office — Main Entrance",
+                "2026-02-09",
+                "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
+                1,
+                "Keys: 3 total · Keychain: Blue star rubber · Ring: Silver"
+            ),
+            (
+                "Adidas Soccer Cleats (Size 10)",
+                "Sports Equipment",
+                "Black and white Adidas Copa soccer cleats, men's size 10. Found in a bag near the athletic field entrance after practice.",
+                "Athletic Fields — Equipment Room",
+                "2026-02-11",
+                "https://images.unsplash.com/photo-1511886929837-354d827aae26?w=600&q=80",
+                1,
+                "Brand: Adidas Copa · Color: Black & White · Size: Men's 10 · Condition: Used"
+            ),
+            (
+                "Gold Heart Charm Bracelet",
+                "Jewelry & Accessories",
+                "Thin gold chain bracelet with a small heart charm. Delicate clasp. Found on the gymnasium floor after morning assembly.",
+                "Gymnasium — Main Floor",
+                "2026-02-13",
+                "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80",
+                1,
+                "Material: Gold tone · Charm: Small heart · Clasp: Lobster claw · Length: ~7 inches"
+            ),
+            (
+                "Ray-Ban Wayfarer Sunglasses",
+                "Jewelry & Accessories",
+                "Classic black Ray-Ban Original Wayfarer sunglasses in a black soft case. Found on the outdoor lunch bench.",
+                "Outdoor Lunch Area — Bench 3",
+                "2026-02-14",
+                "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80",
+                1,
+                "Brand: Ray-Ban · Model: Original Wayfarer RB2140 · Color: Black · Case: Yes"
+            ),
+            (
+                "Grey North Face Puffer Jacket",
+                "Clothing & Apparel",
+                "Grey North Face Nuptse puffer jacket, size Large. Found hanging on a chair in a classroom. No name tag inside.",
+                "Upper School — Room 304",
+                "2026-02-15",
+                "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80",
+                1,
+                "Brand: The North Face · Style: Nuptse Puffer · Color: Grey · Size: Large"
+            ),
+            (
+                "Apple MacBook USB-C Charger",
+                "Electronics",
+                "Apple 65W USB-C MacBook charger with white cable. No name on it. Found plugged into an outlet in the library charging station.",
+                "Library — Charging Station",
+                "2026-02-16",
+                "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&q=80",
+                1,
+                "Brand: Apple · Wattage: 65W · Connector: USB-C · Cable included: Yes"
+            ),
+            (
+                "Purple Spiral Notebook",
+                "Books & Stationery",
+                "Purple spiral-bound notebook, college rule. Name written inside front cover: A. Chen. Appears to contain History notes.",
+                "Cafeteria — Table 7",
+                "2026-02-10",
+                "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=600&q=80",
+                1,
+                "Color: Purple · Style: Spiral · Rule: College · Name inside: A. Chen · Subject: History"
+            ),
         ]
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
         for item in sample_items:
             db.execute(
-                "INSERT INTO items (name, category, description, location, date_found, photo, status, submitted) VALUES (?,?,?,?,?,?,'approved',?)",
+                """INSERT INTO items
+                   (name, category, description, location, date_found, photo_url, quantity, item_detail, status, submitted)
+                   VALUES (?,?,?,?,?,?,?,?,'approved',?)""",
                 (*item, now)
             )
         db.commit()
@@ -127,20 +282,15 @@ def init_db():
 
 
 def enrich_items(rows):
-    """Add emoji and resolved photo_url to item rows."""
+    """Add emoji; photo_url is already in the DB column. Fall back to category photo."""
     result = []
     for row in rows:
         d = dict(row)
         d["emoji"] = CATEGORY_EMOJI.get(d["category"], "📦")
-        # If photo starts with "url:" it's a direct external URL
-        # Otherwise it's a local filename in static/uploads
-        # Fall back to category photo if neither
-        if d.get("photo") and d["photo"].startswith("url:"):
-            d["photo_url"] = d["photo"][4:]  # strip "url:" prefix
-        elif d.get("photo"):
-            d["photo_url"] = None  # local file, handled by template with url_for
-        else:
-            d["photo_url"] = CATEGORY_PHOTOS.get(d["category"])  # fallback
+        # photo_url column has external URLs; photo column has local uploads
+        # If neither, fall back to category default
+        if not d.get("photo_url") and not d.get("photo"):
+            d["photo_url"] = CATEGORY_PHOTOS.get(d["category"])
         result.append(d)
     return result
 
@@ -215,7 +365,9 @@ def report():
 
         db = get_db()
         db.execute(
-            "INSERT INTO items (name, category, description, location, date_found, photo, submitted) VALUES (?,?,?,?,?,?,?)",
+            """INSERT INTO items
+               (name, category, description, location, date_found, photo, quantity, item_detail, submitted)
+               VALUES (?,?,?,?,?,?,1,NULL,?)""",
             (name, category, description, location, date_found, photo_filename,
              datetime.now().strftime("%Y-%m-%d %H:%M")),
         )
