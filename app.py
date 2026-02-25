@@ -520,10 +520,26 @@ def report():
              datetime.now().strftime("%Y-%m-%d %H:%M")),
         )
         db.commit()
-        flash("Item reported! It will appear once reviewed by an admin.", "success")
-        return redirect(url_for("index"))
+        new_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+        # Log the event
+        db.execute("INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
+            (new_id, "reported", "Item reported as found at campus", datetime.now().strftime("%Y-%m-%d %H:%M")))
+        db.commit()
+        return redirect(url_for("report_success", item_id=new_id))
 
     return render_template("report.html")
+
+
+@app.route("/report/success/<int:item_id>")
+def report_success(item_id):
+    """Confirmation page shown after reporting a found item — shows admin review status."""
+    db  = get_db()
+    row = db.execute("SELECT * FROM items WHERE id=?", (item_id,)).fetchone()
+    if not row:
+        return redirect(url_for("index"))
+    item = enrich_items([row])[0]
+    is_admin = session.get("admin")
+    return render_template("report_success.html", item=item, is_admin=is_admin)
 
 
 @app.route("/item/<int:item_id>")
@@ -812,7 +828,8 @@ def admin_login():
     if request.method == "POST":
         if request.form.get("password") == ADMIN_PASSWORD:
             session["admin"] = True
-            return redirect(url_for("admin_dashboard"))
+            next_url = session.pop("after_login", None)
+            return redirect(next_url or url_for("admin_dashboard"))
         flash("Incorrect password.", "error")
     return render_template("admin_login.html")
 
@@ -820,6 +837,8 @@ def admin_login():
 @app.route("/admin/dashboard")
 def admin_dashboard():
     if not session.get("admin"):
+        # Remember where they were trying to go
+        session["after_login"] = request.url
         return redirect(url_for("admin_login"))
     db = get_db()
     pending_items  = enrich_items(db.execute("SELECT * FROM items WHERE status='pending'  ORDER BY id DESC").fetchall())
@@ -831,10 +850,12 @@ def admin_dashboard():
         WHERE claims.status='pending' ORDER BY claims.id DESC
     """).fetchall()
     notifications = db.execute("SELECT * FROM notifications ORDER BY id DESC").fetchall()
+    # active_tab lets the page auto-open the right tab (e.g. "pending" after a new report)
+    active_tab = request.args.get("tab", "pending")
     return render_template("admin.html",
         pending_items=pending_items, approved_items=approved_items,
         claimed_items=claimed_items, pending_claims=pending_claims,
-        notifications=notifications)
+        notifications=notifications, active_tab=active_tab)
 
 
 @app.route("/admin/action", methods=["POST"])
@@ -846,31 +867,37 @@ def admin_action():
     claim_id = request.form.get("claim_id")
     db = get_db()
 
+    tab = "pending"  # default redirect tab
     if action == "approve_item":
         db.execute("UPDATE items SET status='approved' WHERE id=?", (item_id,))
         db.execute("INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
             (item_id, "approved", "Item approved and published by admin", datetime.now().strftime("%Y-%m-%d %H:%M")))
-        flash("Item approved and published.", "success")
+        flash("Item approved and is now live!", "success")
+        tab = "approved"  # jump to Live tab so judges see it appeared
     elif action == "reject_item":
         db.execute("DELETE FROM items WHERE id=?", (item_id,))
         flash("Item rejected and removed.", "success")
+        tab = "pending"
     elif action == "mark_claimed":
         db.execute("UPDATE items SET status='claimed' WHERE id=?", (item_id,))
         db.execute("INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
             (item_id, "returned", "Item marked as returned to owner", datetime.now().strftime("%Y-%m-%d %H:%M")))
-        flash("Item marked as claimed.", "success")
+        flash("Item marked as returned to owner.", "success")
+        tab = "claimed"
     elif action == "approve_claim":
         claim = db.execute("SELECT * FROM claims WHERE id=?", (claim_id,)).fetchone()
         if claim:
             db.execute("UPDATE items SET status='claimed' WHERE id=?", (claim["item_id"],))
             db.execute("UPDATE claims SET status='approved' WHERE id=?", (claim_id,))
-            flash("Claim approved. Item marked as claimed.", "success")
+            flash("Claim approved — item marked as returned!", "success")
+        tab = "claimed"
     elif action == "reject_claim":
         db.execute("UPDATE claims SET status='rejected' WHERE id=?", (claim_id,))
         flash("Claim rejected.", "success")
+        tab = "claims"
 
     db.commit()
-    return redirect(url_for("admin_dashboard"))
+    return redirect(url_for("admin_dashboard", tab=tab))
 
 
 @app.route("/admin/logout")
