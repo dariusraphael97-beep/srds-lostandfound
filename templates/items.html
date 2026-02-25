@@ -74,7 +74,7 @@
       <article class="card reveal reveal-delay-{{ (loop.index0 % 3) + 1 }}" role="listitem">
         <div class="card-img-wrap">
           {% if item.photo %}
-            <img class="card-img" src="{{ url_for('static', filename='uploads/' + item.photo) }}" alt="Photo of {{ item.name }}" loading="lazy" />
+            <img class="card-img" src="{{ url_for('uploaded_file', filename=item.photo) }}" alt="Photo of {{ item.name }}" loading="lazy" />
           {% elif item.photo_url %}
             <img class="card-img" src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" loading="lazy" onerror="this.outerHTML='<div class=card-img-placeholder>'+(this.dataset.emoji||'📦')+'</div>'" data-emoji="{{ item.emoji }}" />
           {% else %}

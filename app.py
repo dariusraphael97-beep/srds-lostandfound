@@ -451,6 +451,13 @@ def allowed_file(filename):
 
 # ─── Routes ───────────────────────────────────────────────────────────────
 
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    """Serve user-uploaded item photos from the dynamic upload folder."""
+    from flask import send_from_directory
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+
 @app.route("/")
 def index():
     db = get_db()

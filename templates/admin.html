@@ -57,7 +57,15 @@
             {% for item in pending_items %}
             <tr style="{% if loop.first %}border-left:3px solid var(--warning);{% endif %}">
               <td style="color:var(--white-40);">#{{ item.id }}</td>
-              <td><strong style="color:var(--white);">{{ item.name }}</strong>{% if item.photo %}<br><span style="font-size:0.75rem; color:var(--accent);">📷 Has photo</span>{% endif %}</td>
+              <td>
+                <strong style="color:var(--white);">{{ item.name }}</strong>
+                {% if item.photo %}
+                <br>
+                <img src="{{ url_for('uploaded_file', filename=item.photo) }}"
+                     alt="Photo" style="width:60px; height:45px; object-fit:cover;
+                     border-radius:6px; margin-top:6px; border:1px solid var(--white-10);" />
+                {% endif %}
+              </td>
               <td><span class="badge badge-pending">{{ item.category }}</span></td>
               <td>{{ item.location }}</td>
               <td>{{ item.date_found }}</td>
