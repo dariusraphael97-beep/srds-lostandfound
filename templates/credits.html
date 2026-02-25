@@ -27,17 +27,23 @@
         </thead>
         <tbody>
           {% for row in [
-            ('Python',       '3.12',   'Core programming language',           'PSF License'),
-            ('Flask',        '3.x',    'Web application framework',           'BSD-3-Clause'),
-            ('SQLite',       '3.x',    'Embedded relational database',        'Public Domain'),
-            ('Werkzeug',     '3.x',    'WSGI utilities, secure file uploads', 'BSD-3-Clause'),
-            ('Gunicorn',     '21.x',   'Production WSGI server (Railway)',    'MIT'),
-            ('Railway',      '—',      'Cloud hosting & deployment platform', 'Commercial SaaS'),
+            ('Python',         '3.12',  'Core programming language',                      'PSF License'),
+            ('Flask',          '3.x',   'Web application framework',                      'BSD-3-Clause'),
+            ('Jinja2',         '3.x',   'HTML templating engine (bundled with Flask)',     'BSD-3-Clause'),
+            ('Werkzeug',       '3.x',   'WSGI utilities, password hashing, file uploads', 'BSD-3-Clause'),
+            ('itsdangerous',   '2.x',   'Session signing and security tokens (via Flask)','BSD-3-Clause'),
+            ('SQLite',         '3.x',   'Embedded relational database',                   'Public Domain'),
+            ('Gunicorn',       '21.x',  'Production WSGI server (Railway deployment)',    'MIT'),
+            ('Railway',        '—',     'Cloud hosting &amp; deployment platform',        'Commercial SaaS'),
+            ('Python: os',     'stdlib','File paths, environment variables',              'PSF License'),
+            ('Python: datetime','stdlib','Timestamps for submissions and events',         'PSF License'),
+            ('Python: sqlite3','stdlib','Database connection and query interface',        'PSF License'),
+            ('Python: re',     'stdlib','Keyword parsing in Smart Match algorithm',       'PSF License'),
           ] %}
           <tr style="border-bottom:1px solid var(--white-05);">
             <td style="padding:10px 12px; color:var(--white); font-weight:600;">{{ row[0] }}</td>
             <td style="padding:10px 12px; color:var(--accent); font-family:monospace; font-size:0.82rem;">{{ row[1] }}</td>
-            <td style="padding:10px 12px; color:var(--white-70);">{{ row[2] }}</td>
+            <td style="padding:10px 12px; color:var(--white-70);">{{ row[2]|safe }}</td>
             <td style="padding:10px 12px; color:var(--white-40); font-size:0.8rem;">{{ row[3] }}</td>
           </tr>
           {% endfor %}
@@ -47,7 +53,7 @@
 
     <!-- Frontend -->
     <div class="card reveal" style="margin-bottom:24px; padding:32px;">
-      <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:20px; color:var(--white);">Frontend Libraries &amp; CSS</h2>
+      <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:20px; color:var(--white);">Frontend &amp; CSS</h2>
       <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
         <thead>
           <tr style="border-bottom:1px solid var(--white-10);">
@@ -59,12 +65,18 @@
         </thead>
         <tbody>
           {% for row in [
-            ('Custom CSS (style.css)', 'Original — written from scratch', 'All layout, animations, glassmorphism, dark mode', 'Original Work'),
-            ('Inter',                  'Google Fonts',                    'Primary UI typeface',                               'SIL Open Font License'),
-            ('Cormorant Garamond',     'Google Fonts',                    'Display / heading typeface',                        'SIL Open Font License'),
-            ('Plus Jakarta Sans',      'Google Fonts',                    'Body and label typeface',                           'SIL Open Font License'),
-            ('SVG Campus Crest',       'Original — hand-coded SVG',       'SRDS logo in navigation',                           'Original Work'),
-            ('IntersectionObserver',   'Web API (built-in)',               'Scroll-reveal animations',                          'W3C Standard'),
+            ('HTML5 / CSS3',         'W3C Standard',                   'Page structure and all visual styling',              'W3C Standard'),
+            ('JavaScript (ES6+)',    'ECMA Standard',                  'Interactivity, animations, form logic',              'ECMA Standard'),
+            ('style.css',            'Original — written from scratch','Layout, glassmorphism, dark mode, responsiveness',   'Original Work'),
+            ('main.js',              'Original — written from scratch','Spotlight cursor, scroll reveals, bookmarks',        'Original Work'),
+            ('Inter',                'Google Fonts',                   'Primary UI sans-serif typeface',                     'SIL Open Font License'),
+            ('Cormorant Garamond',   'Google Fonts',                   'Display / heading serif typeface',                   'SIL Open Font License'),
+            ('Plus Jakarta Sans',    'Google Fonts',                   'Body text and label typeface',                       'SIL Open Font License'),
+            ('IntersectionObserver', 'Web API (built-in)',              'Scroll-triggered reveal animations',                 'W3C Standard'),
+            ('requestAnimationFrame','Web API (built-in)',              'Smooth spotlight cursor animation',                  'W3C Standard'),
+            ('localStorage',         'Web API (built-in)',              'Client-side bookmarks and theme preference',         'W3C Standard'),
+            ('Campus Heatmap SVG',   'Original — hand-coded SVG',      'Loss hotspot visualization — no mapping library used','Original Work'),
+            ('SRDS School Crest',    'Saddle River Day School',        'Official school logo used with permission',          'School Property'),
           ] %}
           <tr style="border-bottom:1px solid var(--white-05);">
             <td style="padding:10px 12px; color:var(--white); font-weight:600;">{{ row[0] }}</td>
@@ -77,10 +89,14 @@
       </table>
     </div>
 
-    <!-- Images -->
+    <!-- Item Photos -->
     <div class="card reveal" style="margin-bottom:24px; padding:32px;">
       <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:8px; color:var(--white);">Item Photos</h2>
-      <p style="font-size:0.85rem; color:var(--white-40); margin-bottom:20px;">All item photos are illustrative placeholders sourced from Unsplash under the Unsplash License (free for commercial and non-commercial use, no attribution required but credited here).</p>
+      <p style="font-size:0.85rem; color:var(--white-40); margin-bottom:20px; line-height:1.7;">
+        All item photos shown on the site are <strong style="color:var(--white-70);">illustrative placeholders only</strong> — real item photos are uploaded by users when they report a found item.
+        Placeholder images are sourced from Unsplash under the <strong style="color:var(--white-70);">Unsplash License</strong> (attribution appreciated but not required).
+        Full license: <a href="https://unsplash.com/license" target="_blank" rel="noopener" style="color:var(--accent);">unsplash.com/license</a>
+      </p>
       <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
         <thead>
           <tr style="border-bottom:1px solid var(--white-10);">
@@ -106,7 +122,7 @@
           ] %}
           <tr style="border-bottom:1px solid var(--white-05);">
             <td style="padding:8px 12px; color:var(--white); font-weight:600;">{{ row[0] }}</td>
-            <td style="padding:8px 12px; color:var(--accent); font-family:monospace; font-size:0.78rem;">
+            <td style="padding:8px 12px; font-family:monospace; font-size:0.78rem;">
               <a href="https://unsplash.com/{{ row[1] }}" target="_blank" rel="noopener"
                  style="color:var(--accent); text-decoration:none;">{{ row[1] }}</a>
             </td>
@@ -117,7 +133,7 @@
       </table>
     </div>
 
-    <!-- Original work statement -->
+    <!-- Original Work Statement -->
     <div class="card reveal" style="margin-bottom:24px; padding:32px; background:rgba(74,127,212,0.06); border-color:rgba(74,127,212,0.2);">
       <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:16px; color:var(--white);">Statement of Original Work</h2>
       <p style="font-size:0.88rem; color:var(--white-70); line-height:1.8; margin-bottom:14px;">
@@ -126,12 +142,15 @@
       <p style="font-size:0.88rem; color:var(--white-70); line-height:1.8; margin-bottom:14px;">
         No website templates, Wix, Squarespace, WordPress, or third-party page builders were used. No pre-built UI component libraries (Bootstrap, Tailwind, Material UI, etc.) were used. All design, layout, animations, and interactivity were coded by hand.
       </p>
-      <p style="font-size:0.88rem; color:var(--white-70); line-height:1.8;">
-        The Smart Match scoring algorithm, Private Proof claim system, Campus Heatmap visualization, and Item Journey Timeline are all original features designed and implemented for this project.
+      <p style="font-size:0.88rem; color:var(--white-70); line-height:1.8; margin-bottom:14px;">
+        The Smart Match scoring algorithm, Private Proof claim system, Campus Heatmap SVG visualization, and Item Journey Timeline are all original features designed and implemented specifically for this project — no third-party mapping or matching libraries were used.
+      </p>
+      <p style="font-size:0.88rem; color:var(--accent); line-height:1.8;">
+        Full version history and development log available upon request.
       </p>
     </div>
 
-    <!-- Research sources -->
+    <!-- Research & References -->
     <div class="card reveal" style="padding:32px;">
       <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:16px; color:var(--white);">Research &amp; References</h2>
       <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
@@ -143,13 +162,16 @@
         </thead>
         <tbody>
           {% for row in [
-            ('Flask Documentation — flask.palletsprojects.com',      'Routes, templates, session management, file uploads'),
-            ('SQLite Documentation — sqlite.org',                     'Database schema design and query optimization'),
-            ('MDN Web Docs — developer.mozilla.org',                  'CSS animations, IntersectionObserver, Web APIs'),
-            ('W3C WCAG 2.1 Guidelines — w3.org',                     'Accessibility: ARIA labels, keyboard navigation, contrast'),
+            ('Flask Documentation — flask.palletsprojects.com',      'Routes, Jinja2 templates, session management, file uploads'),
+            ('Jinja2 Documentation — jinja.palletsprojects.com',     'Template syntax, filters, conditional rendering'),
+            ('SQLite Documentation — sqlite.org',                     'Database schema design, query optimization, migrations'),
+            ('MDN Web Docs — developer.mozilla.org',                  'CSS animations, Web APIs, accessibility, JavaScript ES6'),
+            ('W3C WCAG 2.1 Guidelines — w3.org',                     'Accessibility: ARIA labels, keyboard navigation, contrast ratios'),
             ('Google Fonts — fonts.google.com',                       'Inter, Cormorant Garamond, Plus Jakarta Sans typefaces'),
-            ('Unsplash — unsplash.com',                               'Illustrative item photography (see table above)'),
-            ('Railway Documentation — docs.railway.app',              'Deployment configuration and environment variables'),
+            ('Unsplash — unsplash.com',                               'Illustrative placeholder photography for sample items'),
+            ('Railway Documentation — docs.railway.app',              'Cloud deployment, environment variables, volume mounts'),
+            ('Python Docs: sqlite3 — docs.python.org',               'Database connection pooling and row factory configuration'),
+            ('Werkzeug Docs — werkzeug.palletsprojects.com',         'Secure filename handling for user photo uploads'),
           ] %}
           <tr style="border-bottom:1px solid var(--white-05);">
             <td style="padding:10px 12px; color:var(--white); font-weight:500;">{{ row[0] }}</td>

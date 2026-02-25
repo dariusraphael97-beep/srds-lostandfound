@@ -207,7 +207,7 @@ def init_db():
             ("Apple AirPods",
              "Electronics",
              "Multiple Apple AirPods found across campus. Click View Details to see each variant — model, which bud(s), case included, and how many of each are still unclaimed.",
-             "Various Locations on Campus",
+             "North Hall — Multiple Areas",
              "2026-02-10",
              "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80",
              5,
