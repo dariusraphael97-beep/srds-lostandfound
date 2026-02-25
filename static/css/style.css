@@ -71,26 +71,25 @@ body {
   transition: background 0.5s ease, color 0.5s ease;
 }
 
-/* Custom cursor */
-.cursor {
-  width: 10px; height: 10px;
-  background: var(--accent);
+/* Spotlight cursor — subtle radial glow that follows mouse */
+.cursor-spotlight {
+  position: fixed;
+  width: 420px; height: 420px;
   border-radius: 50%;
-  position: fixed; top: 0; left: 0;
-  pointer-events: none; z-index: 9999;
+  pointer-events: none;
+  z-index: 1;
+  top: 0; left: 0;
   transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(74,127,212,0.07) 0%,
+    rgba(74,127,212,0.03) 40%,
+    transparent 70%
+  );
+  transition: opacity 0.4s ease;
+  will-change: transform;
 }
-.cursor-ring {
-  width: 38px; height: 38px;
-  border: 1.5px solid rgba(74,127,212,0.6);
-  border-radius: 50%;
-  position: fixed; top: 0; left: 0;
-  pointer-events: none; z-index: 9998;
-  transform: translate(-50%, -50%);
-  transition: transform 0.12s ease, width 0.2s ease, height 0.2s ease, border-color 0.2s ease;
-}
-body:has(a:hover) .cursor-ring,
-body:has(button:hover) .cursor-ring { width: 54px; height: 54px; border-color: var(--accent); }
+
 
 img { max-width: 100%; height: auto; display: block; }
 a  { color: inherit; text-decoration: none; }
@@ -153,8 +152,8 @@ nav.scrolled {
 .nav-logo-img {
   width: 100%; height: 100%;
   object-fit: contain;
-  /* SVG has transparent bg — no blend-mode needed */
-  filter: drop-shadow(0 2px 6px rgba(42,80,180,0.4));
+  mix-blend-mode: screen;
+  filter: brightness(1.05);
 }
 .nav-logo {
   width: 44px; height: 44px;
@@ -566,7 +565,7 @@ footer .accent-text { color: var(--accent); }
   .hero-actions { flex-direction: column; }
   .btn { width: 100%; justify-content: center; }
   .cta-box { padding: 48px 24px; }
-  .cursor, .cursor-ring { display: none; }
+  .cursor-spotlight { display: none; }
   .items-grid { grid-template-columns: 1fr; }
   .stat-grid  { grid-template-columns: 1fr 1fr; }
   .category-grid { grid-template-columns: repeat(2, 1fr); }

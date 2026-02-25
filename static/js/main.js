@@ -4,45 +4,49 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* ===================== CUSTOM CURSOR ===================== */
-  const cursor = document.querySelector('.cursor');
-  const ring   = document.querySelector('.cursor-ring');
+  /* ===================== SPOTLIGHT CURSOR ===================== */
+  // Subtle radial glow that follows the mouse — desktop only
+  const spotlight = document.getElementById('cursorSpotlight');
 
-  if (cursor && ring && window.innerWidth > 900) {
-    let mx = 0, my = 0, rx = 0, ry = 0;
-    let rafId = null;
-    let isVisible = true;
+  if (spotlight && window.innerWidth > 900) {
+    let tx = window.innerWidth  / 2;
+    let ty = window.innerHeight / 2;
+    let cx = tx, cy = ty;
+    let visible = true;
 
     document.addEventListener('mousemove', e => {
-      mx = e.clientX; my = e.clientY;
-      cursor.style.left = mx + 'px';
-      cursor.style.top  = my + 'px';
+      tx = e.clientX; ty = e.clientY;
     }, { passive: true });
 
-    const followRing = () => {
-      if (!isVisible) return; // stop when tab hidden
-      rx += (mx - rx) * 0.12;
-      ry += (my - ry) * 0.12;
-      ring.style.left = rx + 'px';
-      ring.style.top  = ry + 'px';
-      rafId = requestAnimationFrame(followRing);
+    // Smooth lerp follow — much slower than cursor so it feels like ambient light
+    const follow = () => {
+      if (!visible) return;
+      cx += (tx - cx) * 0.06;
+      cy += (ty - cy) * 0.06;
+      spotlight.style.transform = `translate(calc(-50% + ${cx}px), calc(-50% + ${cy}px))`;
+      requestAnimationFrame(follow);
     };
-    rafId = requestAnimationFrame(followRing);
+    // Reset transform origin so translate works from top-left
+    spotlight.style.top  = '0';
+    spotlight.style.left = '0';
+    follow();
 
-    // Pause when tab is hidden to prevent memory leak
-    document.addEventListener('visibilitychange', () => {
-      isVisible = !document.hidden;
-      if (isVisible && !rafId) rafId = requestAnimationFrame(followRing);
+    // Brighten spotlight on interactive elements
+    document.querySelectorAll('a, button, .card').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        spotlight.style.background = 'radial-gradient(circle, rgba(74,127,212,0.13) 0%, rgba(74,127,212,0.05) 40%, transparent 70%)';
+      });
+      el.addEventListener('mouseleave', () => {
+        spotlight.style.background = 'radial-gradient(circle, rgba(74,127,212,0.07) 0%, rgba(74,127,212,0.03) 40%, transparent 70%)';
+      });
     });
 
-    document.querySelectorAll('a, button, .card, input, select, textarea').forEach(el => {
-      el.addEventListener('mouseenter', () => { cursor.style.transform = 'translate(-50%,-50%) scale(2)'; cursor.style.opacity = '0.5'; });
-      el.addEventListener('mouseleave', () => { cursor.style.transform = 'translate(-50%,-50%) scale(1)'; cursor.style.opacity = '1'; });
+    // Pause when tab hidden
+    document.addEventListener('visibilitychange', () => {
+      visible = !document.hidden;
     });
   } else {
-    // Hide cursor elements on mobile/tablet — they cause layout issues
-    if (cursor) cursor.style.display = 'none';
-    if (ring)   ring.style.display   = 'none';
+    if (spotlight) spotlight.style.display = 'none';
   }
 
   /* ===================== NAV SCROLL ===================== */
