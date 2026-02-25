@@ -20,7 +20,7 @@
       <!-- Brand -->
       <a href="{{ url_for('index') }}" class="nav-brand" style="text-decoration:none;">
         <div class="nav-logo-wrap">
-          <img src="{{ url_for('static', filename='img/srds-logo.png') }}" alt="SRDS" class="nav-logo-img" />
+          <img src="{{ url_for('static', filename='img/srds-logo.svg') }}" alt="SRDS" class="nav-logo-img" />
         </div>
         <div class="nav-title">
           SRDS Lost &amp; Found
@@ -38,6 +38,9 @@
         <li><a href="{{ url_for('heatmap') }}"     class="{% if request.endpoint == 'heatmap' %}active{% endif %}">Heatmap</a></li>
         <li><a href="{{ url_for('lost_report') }}" class="{% if request.endpoint == 'lost_report' %}active{% endif %}">I Lost Something</a></li>
         <li><a href="{{ url_for('report') }}"      class="btn-nav {% if request.endpoint == 'report' %}active{% endif %}">+ Found Item</a></li>
+        {% if session.get('admin') %}
+        <li><a href="{{ url_for('admin_dashboard') }}" class="btn-nav btn-nav-admin {% if 'admin' in request.endpoint %}active{% endif %}">⚙ Admin</a></li>
+        {% endif %}
       </ul>
 
       <div class="nav-actions">
@@ -69,6 +72,11 @@
     <p class="footer-name">SRDS Lost &amp; Found</p>
     <p class="footer-sub">Saddle River Day School &nbsp;·&nbsp; 147 Chestnut Ridge Rd, Saddle River, NJ</p>
     <p class="footer-sub">Built for FBLA Website Coding &amp; Development 2025–2026</p>
+    <p class="footer-sub" style="margin-top:12px;">
+      <a href="{{ url_for('credits') }}" style="color:var(--accent); text-decoration:none; font-size:0.75rem; letter-spacing:0.05em;">Sources &amp; Credits</a>
+      &nbsp;·&nbsp;
+      <a href="{{ url_for('admin_login') }}" style="color:var(--white-20); text-decoration:none; font-size:0.75rem;">Staff Login</a>
+    </p>
     <p class="footer-note">Questions? Visit the front office or speak with your division's administrative assistant.</p>
   </footer>
 

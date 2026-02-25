@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Sources & Credits — SRDS Lost & Found{% endblock %}
+
+{% block content %}
+<header class="page-header" aria-labelledby="credits-heading">
+  <div class="container">
+    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:14px;">Documentation</div>
+    <h1 id="credits-heading">Sources &amp; Credits</h1>
+    <p>All libraries, fonts, tools, and resources used to build this project.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container" style="max-width:860px;">
+
+    <!-- Backend -->
+    <div class="card reveal" style="margin-bottom:24px; padding:32px;">
+      <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:20px; color:var(--white);">Backend &amp; Framework</h2>
+      <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--white-10);">
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Resource</th>
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Version</th>
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Purpose</th>
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">License</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in [
+            ('Python',       '3.12',   'Core programming language',           'PSF License'),
+            ('Flask',        '3.x',    'Web application framework',           'BSD-3-Clause'),
+            ('SQLite',       '3.x',    'Embedded relational database',        'Public Domain'),
+            ('Werkzeug',     '3.x',    'WSGI utilities, secure file uploads', 'BSD-3-Clause'),
+            ('Gunicorn',     '21.x',   'Production WSGI server (Railway)',    'MIT'),
+            ('Railway',      '—',      'Cloud hosting & deployment platform', 'Commercial SaaS'),
+          ] %}
+          <tr style="border-bottom:1px solid var(--white-05);">
+            <td style="padding:10px 12px; color:var(--white); font-weight:600;">{{ row[0] }}</td>
+            <td style="padding:10px 12px; color:var(--accent); font-family:monospace; font-size:0.82rem;">{{ row[1] }}</td>
+            <td style="padding:10px 12px; color:var(--white-70);">{{ row[2] }}</td>
+            <td style="padding:10px 12px; color:var(--white-40); font-size:0.8rem;">{{ row[3] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Frontend -->
+    <div class="card reveal" style="margin-bottom:24px; padding:32px;">
+      <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:20px; color:var(--white);">Frontend Libraries &amp; CSS</h2>
+      <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--white-10);">
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Resource</th>
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Source</th>
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Purpose</th>
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">License</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in [
+            ('Custom CSS (style.css)', 'Original — written from scratch', 'All layout, animations, glassmorphism, dark mode', 'Original Work'),
+            ('Inter',                  'Google Fonts',                    'Primary UI typeface',                               'SIL Open Font License'),
+            ('Cormorant Garamond',     'Google Fonts',                    'Display / heading typeface',                        'SIL Open Font License'),
+            ('Plus Jakarta Sans',      'Google Fonts',                    'Body and label typeface',                           'SIL Open Font License'),
+            ('SVG Campus Crest',       'Original — hand-coded SVG',       'SRDS logo in navigation',                           'Original Work'),
+            ('IntersectionObserver',   'Web API (built-in)',               'Scroll-reveal animations',                          'W3C Standard'),
+          ] %}
+          <tr style="border-bottom:1px solid var(--white-05);">
+            <td style="padding:10px 12px; color:var(--white); font-weight:600;">{{ row[0] }}</td>
+            <td style="padding:10px 12px; color:var(--accent); font-size:0.82rem;">{{ row[1] }}</td>
+            <td style="padding:10px 12px; color:var(--white-70);">{{ row[2] }}</td>
+            <td style="padding:10px 12px; color:var(--white-40); font-size:0.8rem;">{{ row[3] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Images -->
+    <div class="card reveal" style="margin-bottom:24px; padding:32px;">
+      <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:8px; color:var(--white);">Item Photos</h2>
+      <p style="font-size:0.85rem; color:var(--white-40); margin-bottom:20px;">All item photos are illustrative placeholders sourced from Unsplash under the Unsplash License (free for commercial and non-commercial use, no attribution required but credited here).</p>
+      <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--white-10);">
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Item</th>
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Unsplash Photo ID</th>
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">License</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in [
+            ('Apple AirPods',                'photo-1590658268037-6bf12165a8df', 'Unsplash License'),
+            ('Blue Nike Backpack',           'photo-1553062407-98eeb64c6a62',    'Unsplash License'),
+            ('TI-84 Plus CE Calculator',     'photo-1611532736597-de2d4265fba3', 'Unsplash License'),
+            ('Green Hydro Flask',            'photo-1602143407151-7111542de6e8', 'Unsplash License'),
+            ('Black Champion Zip Hoodie',    'photo-1556821840-3a63f15732ce',    'Unsplash License'),
+            ('Set of House Keys',            'photo-1558618666-fcd25c85cd64',    'Unsplash License'),
+            ('Adidas Soccer Cleats',         'photo-1511886929837-354d827aae26', 'Unsplash License'),
+            ('Gold Heart Charm Bracelet',    'photo-1611591437281-460bfbe1220a', 'Unsplash License'),
+            ('Ray-Ban Wayfarer Sunglasses',  'photo-1572635196237-14b3f281503f', 'Unsplash License'),
+            ('Grey North Face Puffer Jacket','photo-1591047139829-d91aecb6caea', 'Unsplash License'),
+            ('Apple MacBook USB-C Charger',  'photo-1588872657578-7efd1f1555ed', 'Unsplash License'),
+            ('Purple Spiral Notebook',       'photo-1531346878377-a5be20888e57', 'Unsplash License'),
+          ] %}
+          <tr style="border-bottom:1px solid var(--white-05);">
+            <td style="padding:8px 12px; color:var(--white); font-weight:600;">{{ row[0] }}</td>
+            <td style="padding:8px 12px; color:var(--accent); font-family:monospace; font-size:0.78rem;">
+              <a href="https://unsplash.com/{{ row[1] }}" target="_blank" rel="noopener"
+                 style="color:var(--accent); text-decoration:none;">{{ row[1] }}</a>
+            </td>
+            <td style="padding:8px 12px; color:var(--white-40); font-size:0.78rem;">{{ row[2] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Original work statement -->
+    <div class="card reveal" style="margin-bottom:24px; padding:32px; background:rgba(74,127,212,0.06); border-color:rgba(74,127,212,0.2);">
+      <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:16px; color:var(--white);">Statement of Original Work</h2>
+      <p style="font-size:0.88rem; color:var(--white-70); line-height:1.8; margin-bottom:14px;">
+        All application code — including the Flask backend (<code style="color:var(--accent);">app.py</code>), HTML templates, CSS stylesheet (<code style="color:var(--accent);">style.css</code>), and JavaScript (<code style="color:var(--accent);">main.js</code>) — was written entirely from scratch as original work for the FBLA Website Coding &amp; Development competition, 2025–2026.
+      </p>
+      <p style="font-size:0.88rem; color:var(--white-70); line-height:1.8; margin-bottom:14px;">
+        No website templates, Wix, Squarespace, WordPress, or third-party page builders were used. No pre-built UI component libraries (Bootstrap, Tailwind, Material UI, etc.) were used. All design, layout, animations, and interactivity were coded by hand.
+      </p>
+      <p style="font-size:0.88rem; color:var(--white-70); line-height:1.8;">
+        The Smart Match scoring algorithm, Private Proof claim system, Campus Heatmap visualization, and Item Journey Timeline are all original features designed and implemented for this project.
+      </p>
+    </div>
+
+    <!-- Research sources -->
+    <div class="card reveal" style="padding:32px;">
+      <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:16px; color:var(--white);">Research &amp; References</h2>
+      <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--white-10);">
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Source</th>
+            <th style="text-align:left; padding:8px 12px; color:var(--white-40); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;">Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in [
+            ('Flask Documentation — flask.palletsprojects.com',      'Routes, templates, session management, file uploads'),
+            ('SQLite Documentation — sqlite.org',                     'Database schema design and query optimization'),
+            ('MDN Web Docs — developer.mozilla.org',                  'CSS animations, IntersectionObserver, Web APIs'),
+            ('W3C WCAG 2.1 Guidelines — w3.org',                     'Accessibility: ARIA labels, keyboard navigation, contrast'),
+            ('Google Fonts — fonts.google.com',                       'Inter, Cormorant Garamond, Plus Jakarta Sans typefaces'),
+            ('Unsplash — unsplash.com',                               'Illustrative item photography (see table above)'),
+            ('Railway Documentation — docs.railway.app',              'Deployment configuration and environment variables'),
+          ] %}
+          <tr style="border-bottom:1px solid var(--white-05);">
+            <td style="padding:10px 12px; color:var(--white); font-weight:500;">{{ row[0] }}</td>
+            <td style="padding:10px 12px; color:var(--white-70);">{{ row[1] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

@@ -1,7 +1,30 @@
 """
-SRDS Lost & Found Website
-Saddle River Day School — FBLA Website Coding & Development 2025-2026
-Backend: Flask (Python) + SQLite
+SRDS Lost & Found — Web Application
+=====================================
+Saddle River Day School | FBLA Website Coding & Development 2025-2026
+
+Author:  SRDS FBLA Chapter
+Stack:   Python 3.12 + Flask 3.x + SQLite3 + Gunicorn + Railway
+All code is original — no templates, frameworks, or generators used.
+
+Route Map:
+  GET  /                  Home page (recent items + stats)
+  GET  /items             Browse all found items (search + filter)
+  GET  /item/<id>         Item detail page
+  GET  /claim/<id>        Claim form for a specific item
+  POST /claim/<id>        Submit a claim with private proof detail
+  GET  /report            Report a found item form
+  POST /report            Submit a found item (photo upload handled here)
+  GET  /lost              Lost item report + Smart Match form
+  POST /lost              Run Smart Match, save lost report to DB
+  GET  /heatmap           Campus heatmap visualization (SVG)
+  GET  /timeline/<id>     Item journey timeline
+  GET  /credits           Sources & Credits page
+  GET  /admin             Admin login (redirects to dashboard if logged in)
+  POST /admin             Process admin login
+  GET  /admin/dashboard   Full admin dashboard (requires session)
+  POST /admin/action      Approve/reject items and claims
+  GET  /admin/logout      Clear admin session
 """
 
 import os
@@ -46,6 +69,8 @@ CATEGORY_PHOTOS = {
     "Other":                "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
 }
 
+
+# ─── Database helpers ─────────────────────────────────────────────────────
 
 def get_db():
     if "db" not in g:
@@ -319,6 +344,10 @@ def init_db():
 # ─────────────────────────────────────────────
 import re as _re
 
+# ─── Smart Match Engine ───────────────────────────────────────────────────
+# Scores every approved found item against a lost-item query.
+# Returns top 5 results with a 0-100 confidence score and reason list.
+
 def smart_match(name, category, description, location, date_lost, db, date_to=None):
     """Return top matches from found items with confidence scores and reasons.
     date_lost = start of range (or exact date), date_to = end of range (optional).
@@ -398,6 +427,8 @@ def smart_match(name, category, description, location, date_lost, db, date_to=No
 
 
 
+# ─── Item enrichment ──────────────────────────────────────────────────────
+
 def enrich_items(rows):
     """Add emoji; strip url: prefix from photo_url. Fall back to category photo."""
     result = []
@@ -418,7 +449,7 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# ---------- Routes ----------
+# ─── Routes ───────────────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
@@ -764,7 +795,12 @@ def api_heatmap():
     return jsonify(dict(loc_data))
 
 
-# ---------- Admin Routes ----------
+@app.route("/credits")
+def credits():
+    return render_template("credits.html")
+
+
+# ─── Admin Routes ─────────────────────────────────────────────────────────
 
 ADMIN_PASSWORD = "srds2026"
 
