@@ -19,8 +19,10 @@
     <!-- Item card summary -->
     <div class="card reveal" style="display:grid; grid-template-columns:90px 1fr; margin-bottom:48px; min-height:auto;">
       <div style="overflow:hidden; border-radius:var(--radius-lg) 0 0 var(--radius-lg);">
-        {% if item.photo_url %}
-          <img src="{{ item.photo_url }}" alt="{{ item.name }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;" onerror="this.outerHTML='<div style=width:90px;height:90px;display:flex;align-items:center;justify-content:center;background:var(--navy-mid);border-radius:8px;font-size:2rem>'+(this.dataset.emoji||'📦')+'</div>'" data-emoji="{{ item.emoji }}" />
+        {% if item.photo %}
+          <img src="{{ url_for('uploaded_file', filename=item.photo) }}" alt="{{ item.name }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;" />
+        {% elif item.photo_url %}
+          <img src="{{ item.photo_url }}" alt="{{ item.name }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;" onerror="this.outerHTML='<div style=width:90px;height:90px;display:flex;align-items:center;justify-content:center;background:var(--navy-mid);border-radius:8px;font-size:2rem>{{ item.emoji }}</div>'" />
         {% else %}
           <div style="width:90px; height:90px; background:linear-gradient(135deg,var(--navy-mid),var(--blue)); display:flex; align-items:center; justify-content:center; font-size:2rem;">{{ item.emoji }}</div>
         {% endif %}

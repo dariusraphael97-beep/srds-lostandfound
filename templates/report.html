@@ -66,7 +66,21 @@
         <input type="file" id="photo" name="photo" accept=".png,.jpg,.jpeg,.gif,.webp" />
       </div>
 
-      <div style="display:flex; gap:12px; flex-wrap:wrap; border-top:1px solid var(--white-10); padding-top:28px; margin-top:8px;">
+      <div style="border-top:1px solid var(--white-10); padding-top:28px; margin-top:8px;">
+        <h3 style="font-size:1.1rem; margin-bottom:6px; color:var(--white);">Your Contact Info</h3>
+        <p style="font-size:0.82rem; color:var(--white-40); margin-bottom:20px;">So staff can reach you if there are any questions about the item you found.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;" class="two-col-form">
+          <div class="form-group">
+            <label for="finder_name">Your Name <span class="required">*</span></label>
+            <input type="text" id="finder_name" name="finder_name" placeholder="Your full name" required />
+          </div>
+          <div class="form-group">
+            <label for="finder_email">Your School Email <span class="required">*</span></label>
+            <input type="email" id="finder_email" name="finder_email" placeholder="you@srds.org" required />
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; padding-top:8px;">
         <button type="submit" class="btn btn-primary">✓ Submit Report</button>
         <a href="{{ url_for('index') }}" class="btn btn-glass">Cancel</a>
       </div>

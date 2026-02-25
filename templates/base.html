@@ -5,9 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="SRDS Lost & Found — Saddle River Day School's official lost and found portal for students and staff." />
   <title>{% block title %}SRDS Lost & Found{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/srds-logo.png') }}" />
+  <meta name="theme-color" content="#040814" />
+  <meta property="og:title" content="SRDS Lost & Found" />
+  <meta property="og:description" content="Saddle River Day School's official lost and found portal for students and staff." />
+  <meta property="og:type" content="website" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
+
+  <!-- Skip to main content (accessibility) -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <!-- Spotlight cursor (desktop only) -->
   <div class="cursor-spotlight" id="cursorSpotlight" aria-hidden="true"></div>
@@ -62,7 +70,7 @@
     {% endif %}
   {% endwith %}
 
-  <main>
+  <main id="main-content">
     {% block content %}{% endblock %}
   </main>
 

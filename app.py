@@ -101,7 +101,9 @@ def init_db():
             quantity    INTEGER DEFAULT 1,
             item_detail TEXT    DEFAULT NULL,
             status      TEXT    DEFAULT 'pending',
-            submitted   TEXT    NOT NULL
+            submitted   TEXT    NOT NULL,
+            finder_name  TEXT    DEFAULT NULL,
+            finder_email TEXT    DEFAULT NULL
         );
 
         CREATE TABLE IF NOT EXISTS claims (
@@ -131,7 +133,9 @@ def init_db():
             location    TEXT    NOT NULL,
             date_lost   TEXT    NOT NULL,
             contact     TEXT    NOT NULL,
-            submitted   TEXT    NOT NULL
+            submitted   TEXT    NOT NULL,
+            finder_name  TEXT    DEFAULT NULL,
+            finder_email TEXT    DEFAULT NULL
         );
 
         CREATE TABLE IF NOT EXISTS item_events (
@@ -188,6 +192,12 @@ def init_db():
         timestamp TEXT NOT NULL,
         FOREIGN KEY (item_id) REFERENCES items(id)
     )""")
+    # Add finder contact to items if missing (migration)
+    item_cols = [r[1] for r in db.execute("PRAGMA table_info(items)").fetchall()]
+    if "finder_name" not in item_cols:
+        db.execute("ALTER TABLE items ADD COLUMN finder_name TEXT DEFAULT NULL")
+    if "finder_email" not in item_cols:
+        db.execute("ALTER TABLE items ADD COLUMN finder_email TEXT DEFAULT NULL")
     # Add proof_detail to claims if missing
     claim_cols = [r[1] for r in db.execute("PRAGMA table_info(claims)").fetchall()]
     if "proof_detail" not in claim_cols:
@@ -509,6 +519,9 @@ def report():
             flash("Please fill in all required fields.", "error")
             return redirect(url_for("report"))
 
+        finder_name  = request.form.get("finder_name",  "").strip()
+        finder_email = request.form.get("finder_email", "").strip()
+
         photo_filename = None
         if "photo" in request.files:
             file = request.files["photo"]
@@ -521,10 +534,10 @@ def report():
         db = get_db()
         db.execute(
             """INSERT INTO items
-               (name, category, description, location, date_found, photo, quantity, item_detail, submitted)
-               VALUES (?,?,?,?,?,?,1,NULL,?)""",
+               (name, category, description, location, date_found, photo, quantity, item_detail, submitted, finder_name, finder_email)
+               VALUES (?,?,?,?,?,?,1,NULL,?,?,?)""",
             (name, category, description, location, date_found, photo_filename,
-             datetime.now().strftime("%Y-%m-%d %H:%M")),
+             datetime.now().strftime("%Y-%m-%d %H:%M"), finder_name, finder_email),
         )
         db.commit()
         new_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
@@ -931,6 +944,17 @@ def api_search():
 
 # Initialize DB on startup (works on Railway too)
 init_db()
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """Custom 404 page — looks consistent with the rest of the site."""
+    return render_template("404.html"), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    """Custom 500 page."""
+    return render_template("404.html", error_code=500), 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

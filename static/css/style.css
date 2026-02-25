@@ -1,4 +1,31 @@
 /* ============================================================
+   SRDS Lost & Found — style.css
+   Saddle River Day School | FBLA Website Coding & Development 2025-2026
+   All styles original — no framework or UI library used.
+   Sections: Variables → Reset → Typography → Layout → Nav →
+             Hero → Cards → Forms → Admin → Heatmap → Responsive
+   ============================================================ */
+
+/* ─── Skip navigation link (accessibility) ─────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  background: var(--accent);
+  color: var(--white);
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.88rem;
+  z-index: 10000;
+  transition: top 0.2s;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+/* ============================================================
    SRDS Lost & Found — Premium Stylesheet v2.0
    Saddle River Day School | FBLA 2025-2026
    Design: Editorial Dark Luxury — Navy depths, crisp white, glass cards

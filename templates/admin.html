@@ -52,7 +52,7 @@
       {% if pending_items %}
       <div style="overflow-x:auto;">
         <table class="admin-table">
-          <thead><tr><th>ID</th><th>Item</th><th>Category</th><th>Location</th><th>Date Found</th><th>Submitted</th><th>Actions</th></tr></thead>
+          <thead><tr><th>ID</th><th>Item</th><th>Category</th><th>Location</th><th>Date Found</th><th>Reported By</th><th>Submitted</th><th>Actions</th></tr></thead>
           <tbody>
             {% for item in pending_items %}
             <tr style="{% if loop.first %}border-left:3px solid var(--warning);{% endif %}">
@@ -70,6 +70,16 @@
               <td>{{ item.location }}</td>
               <td>{{ item.date_found }}</td>
               <td style="font-size:0.8rem;">{{ item.submitted }}</td>
+              <td style="font-size:0.8rem;">
+                {% if item.finder_name %}
+                  <div style="color:var(--white-70);">{{ item.finder_name }}</div>
+                  {% if item.finder_email %}
+                  <a href="mailto:{{ item.finder_email }}" style="color:var(--accent); font-size:0.75rem;">{{ item.finder_email }}</a>
+                  {% endif %}
+                {% else %}
+                  <span style="color:var(--white-20);">—</span>
+                {% endif %}
+              </td>
               <td style="display:flex; gap:6px; flex-wrap:wrap;">
                 <form method="POST" action="{{ url_for('admin_action') }}" style="display:inline;">
                   <input type="hidden" name="action" value="approve_item" />

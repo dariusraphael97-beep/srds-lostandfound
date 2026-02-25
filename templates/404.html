@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{% if error_code == 500 %}Server Error{% else %}Page Not Found{% endif %} — SRDS Lost & Found{% endblock %}
+
+{% block content %}
+<section class="section" style="min-height:80vh; display:flex; align-items:center;">
+  <div class="container" style="max-width:560px; text-align:center;">
+    <div class="reveal">
+
+      <div style="font-family:'Cormorant Garamond',serif; font-size:8rem; font-weight:700; line-height:1;
+                  background:linear-gradient(135deg, rgba(74,127,212,0.6), rgba(74,127,212,0.2));
+                  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+                  margin-bottom:8px;">
+        {{ error_code or 404 }}
+      </div>
+
+      <h1 style="font-size:1.8rem; margin-bottom:14px;">
+        {% if error_code == 500 %}Something went wrong{% else %}Page not found{% endif %}
+      </h1>
+
+      <p style="color:var(--white-40); line-height:1.8; margin-bottom:40px;">
+        {% if error_code == 500 %}
+          The server hit an unexpected error. Try refreshing — if it keeps happening, visit the front office.
+        {% else %}
+          This page doesn't exist or may have been moved. Try searching for what you're looking for.
+        {% endif %}
+      </p>
+
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">← Back to Home</a>
+        <a href="{{ url_for('items') }}" class="btn btn-glass">Browse Found Items</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}
