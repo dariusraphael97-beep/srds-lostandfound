@@ -15,6 +15,25 @@
 <section class="section-sm">
   <div class="container">
 
+    <!-- Twilio status banner -->
+    {% if not twilio_configured %}
+    <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:var(--radius-sm); padding:14px 20px; margin-bottom:28px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <span style="font-size:1.1rem;">📱</span>
+      <div style="flex:1;">
+        <strong style="color:var(--warning); font-size:0.88rem;">SMS Alerts Not Configured</strong>
+        <p style="font-size:0.8rem; color:var(--white-40); margin:2px 0 0;">
+          Add <code style="color:var(--accent);">TWILIO_ACCOUNT_SID</code>, <code style="color:var(--accent);">TWILIO_AUTH_TOKEN</code>, and <code style="color:var(--accent);">TWILIO_PHONE_NUMBER</code> to your Railway environment variables to enable SMS alerts.
+        </p>
+      </div>
+      <a href="https://twilio.com" target="_blank" rel="noopener" class="btn btn-glass btn-xs">Get Twilio →</a>
+    </div>
+    {% else %}
+    <div style="background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.2); border-radius:var(--radius-sm); padding:12px 20px; margin-bottom:28px; display:flex; gap:10px; align-items:center;">
+      <span style="color:var(--success);">✓</span>
+      <span style="font-size:0.85rem; color:var(--success); font-weight:600;">Twilio SMS is active — alerts will fire automatically when items are approved.</span>
+    </div>
+    {% endif %}
+
     <!-- Stats -->
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-bottom:40px;">
       {% for label, val, color in [
@@ -45,6 +64,7 @@
       <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-claims"        id="btn-claims">📬 Claims ({{ pending_claims|length }})</button>
       <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-claimed"       id="btn-claimed">📦 Claimed ({{ claimed_items|length }})</button>
       <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-notifications" id="btn-notifs">🔔 Alerts ({{ notifications|length }})</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-sms"           id="btn-sms">📱 SMS Log ({{ sms_logs|length }})</button>
     </div>
 
     <!-- Pending Items -->
@@ -206,13 +226,20 @@
       {% if notifications %}
       <div style="overflow-x:auto;">
         <table class="admin-table">
-          <thead><tr><th>ID</th><th>Email</th><th>Keyword</th><th>Created</th></tr></thead>
+          <thead><tr><th>ID</th><th>Email</th><th>Keyword</th><th>Phone (SMS)</th><th>Created</th></tr></thead>
           <tbody>
             {% for n in notifications %}
             <tr>
               <td style="color:var(--white-40);">#{{ n.id }}</td>
               <td><a href="mailto:{{ n.email }}" style="color:var(--accent);">{{ n.email }}</a></td>
               <td><span class="badge badge-approved">{{ n.keyword }}</span></td>
+              <td style="font-size:0.85rem;">
+                {% if n.phone %}
+                  <span style="color:var(--success);">📱 {{ n.phone }}</span>
+                {% else %}
+                  <span style="color:var(--white-20);">Email only</span>
+                {% endif %}
+              </td>
               <td style="font-size:0.8rem;">{{ n.created }}</td>
             </tr>
             {% endfor %}
@@ -220,7 +247,43 @@
         </table>
       </div>
       {% else %}
-      <div class="empty-state"><div class="empty-icon">🔔</div><h3>No notifications set up yet</h3></div>
+      <div class="empty-state"><div class="empty-icon">🔔</div><h3>No alerts set up yet</h3><p>Students can sign up for alerts on the Browse page.</p></div>
+      {% endif %}
+    </div>
+
+    <!-- SMS Log -->
+    <div class="tab-panel card" id="tab-sms" role="tabpanel" aria-labelledby="btn-sms">
+      {% if sms_logs %}
+      <div style="margin-bottom:16px; font-size:0.82rem; color:var(--white-40);">Showing last 50 SMS alerts sent.</div>
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead><tr><th>Time</th><th>To</th><th>Keyword</th><th>Email</th><th>Status</th><th>Message Preview</th></tr></thead>
+          <tbody>
+            {% for log in sms_logs %}
+            <tr>
+              <td style="font-size:0.78rem; color:var(--white-40); white-space:nowrap;">{{ log.sent_at }}</td>
+              <td style="font-size:0.85rem; color:var(--white);">📱 {{ log.phone }}</td>
+              <td>{% if log.keyword %}<span class="badge badge-approved">{{ log.keyword }}</span>{% else %}—{% endif %}</td>
+              <td style="font-size:0.78rem; color:var(--accent);">{{ log.email or '—' }}</td>
+              <td>
+                <span class="badge {% if log.status == 'sent' %}badge-approved{% else %}badge-pending{% endif %}">
+                  {{ log.status }}
+                </span>
+              </td>
+              <td style="font-size:0.75rem; color:var(--white-40); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ log.message }}">
+                {{ log.message[:80] }}…
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📱</div>
+        <h3>No SMS alerts sent yet</h3>
+        <p>SMS alerts fire automatically when an item is approved that matches a subscriber's keyword.</p>
+      </div>
       {% endif %}
     </div>
 
@@ -248,7 +311,7 @@
 
   // Auto-open the right tab based on server hint
   const activeTab = "{{ active_tab }}";
-  const tabMap = { pending: 'tab-pending', approved: 'tab-approved', claims: 'tab-claims', claimed: 'tab-claimed' };
+  const tabMap = { pending: 'tab-pending', approved: 'tab-approved', claims: 'tab-claims', claimed: 'tab-claimed', notifications: 'tab-notifications', sms: 'tab-sms' };
   if (tabMap[activeTab]) openTab(tabMap[activeTab]);
 </script>
 {% endblock %}

@@ -33,6 +33,88 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, g, session
 from werkzeug.utils import secure_filename
 
+# Twilio SMS — loaded from environment variables set in Railway
+# If keys are missing the helper fails silently so the site still works
+try:
+    from twilio.rest import Client as TwilioClient
+    TWILIO_AVAILABLE = True
+except ImportError:
+    TWILIO_AVAILABLE = False
+
+TWILIO_SID   = os.environ.get("TWILIO_ACCOUNT_SID",  "")
+TWILIO_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN",    "")
+TWILIO_FROM  = os.environ.get("TWILIO_PHONE_NUMBER",  "")
+
+
+def send_sms(to_number, message):
+    """Send an SMS via Twilio. Returns True on success, False on failure.
+    Fails silently if Twilio is not configured — site continues to work.
+    to_number must be E.164 format e.g. +12015551234
+    """
+    if not TWILIO_AVAILABLE:
+        app.logger.warning("Twilio package not installed — SMS skipped")
+        return False
+    if not all([TWILIO_SID, TWILIO_TOKEN, TWILIO_FROM]):
+        app.logger.warning("Twilio env vars not set — SMS skipped")
+        return False
+    try:
+        # Normalise number to E.164 (add +1 if US number missing country code)
+        num = to_number.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+        if num.startswith("1") and len(num) == 11:
+            num = "+" + num
+        elif len(num) == 10:
+            num = "+1" + num
+        elif not num.startswith("+"):
+            num = "+" + num
+        client = TwilioClient(TWILIO_SID, TWILIO_TOKEN)
+        client.messages.create(body=message, from_=TWILIO_FROM, to=num)
+        app.logger.info(f"SMS sent to {num}")
+        return True
+    except Exception as e:
+        app.logger.error(f"SMS failed to {to_number}: {e}")
+        return False
+
+
+def fire_item_notifications(item_id, item_name, item_category, item_location, db):
+    """Check notification subscribers and fire SMS to any whose keyword matches
+    the newly approved item. Logs each SMS sent to sms_log table.
+    Called whenever an item status changes to 'approved'.
+    """
+    # Load all subscribers that have a phone number
+    subs = db.execute(
+        "SELECT * FROM notifications WHERE phone IS NOT NULL AND phone != ''"
+    ).fetchall()
+
+    item_text = f"{item_name} {item_category} {item_location}".lower()
+    sent_count = 0
+
+    for sub in subs:
+        keyword = sub["keyword"].lower().strip()
+        # Match if any word of the keyword appears in the item text
+        if any(kw in item_text for kw in keyword.split()):
+            msg = (
+                f"SRDS Lost & Found: A '{item_name}' matching your alert "
+                f"for '{sub['keyword']}' was just posted! "
+                f"Found at: {item_location}. "
+                f"View it at: srds-lostandfound.up.railway.app/items"
+            )
+            success = send_sms(sub["phone"], msg)
+            if success:
+                # Log the sent SMS
+                db.execute(
+                    "INSERT INTO sms_log (notification_id, item_id, phone, message, sent_at, status) VALUES (?,?,?,?,?,?)",
+                    (sub["id"], item_id, sub["phone"], msg,
+                     datetime.now().strftime("%Y-%m-%d %H:%M"), "sent")
+                )
+                sent_count += 1
+            else:
+                db.execute(
+                    "INSERT INTO sms_log (notification_id, item_id, phone, message, sent_at, status) VALUES (?,?,?,?,?,?)",
+                    (sub["id"], item_id, sub["phone"], msg,
+                     datetime.now().strftime("%Y-%m-%d %H:%M"), "failed")
+                )
+    return sent_count
+
 app = Flask(__name__)
 app.secret_key = "srds_lost_found_rebels_2026"
 
@@ -122,7 +204,18 @@ def init_db():
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             email       TEXT    NOT NULL,
             keyword     TEXT    NOT NULL,
+            phone       TEXT    DEFAULT NULL,
             created     TEXT    NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS sms_log (
+            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+            notification_id  INTEGER,
+            item_id          INTEGER,
+            phone            TEXT,
+            message          TEXT,
+            sent_at          TEXT,
+            status           TEXT DEFAULT 'sent'
         );
 
         CREATE TABLE IF NOT EXISTS lost_reports (
@@ -191,6 +284,16 @@ def init_db():
         detail TEXT DEFAULT NULL,
         timestamp TEXT NOT NULL,
         FOREIGN KEY (item_id) REFERENCES items(id)
+    )""")
+    # Add phone to notifications if missing (migration)
+    notif_cols = [r[1] for r in db.execute("PRAGMA table_info(notifications)").fetchall()]
+    if "phone" not in notif_cols:
+        db.execute("ALTER TABLE notifications ADD COLUMN phone TEXT DEFAULT NULL")
+    # Create sms_log if missing
+    db.execute("""CREATE TABLE IF NOT EXISTS sms_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        notification_id INTEGER, item_id INTEGER,
+        phone TEXT, message TEXT, sent_at TEXT, status TEXT DEFAULT 'sent'
     )""")
     # Add finder contact to items if missing (migration)
     item_cols = [r[1] for r in db.execute("PRAGMA table_info(items)").fetchall()]
@@ -626,18 +729,22 @@ def claim(item_id):
 
 @app.route("/notify", methods=["POST"])
 def notify():
-    email   = request.form.get("email", "").strip()
+    email   = request.form.get("email",   "").strip()
     keyword = request.form.get("keyword", "").strip()
+    phone   = request.form.get("phone",   "").strip()
     if email and keyword:
         db = get_db()
         db.execute(
-            "INSERT INTO notifications (email, keyword, created) VALUES (?,?,?)",
-            (email, keyword, datetime.now().strftime("%Y-%m-%d %H:%M"))
+            "INSERT INTO notifications (email, keyword, phone, created) VALUES (?,?,?,?)",
+            (email, keyword, phone or None, datetime.now().strftime("%Y-%m-%d %H:%M"))
         )
         db.commit()
-        flash(f"We'll email {email} when a '{keyword}' item is posted!", "success")
+        if phone:
+            flash(f"Alert set! We'll text {phone} and email {email} when a '{keyword}' is posted.", "success")
+        else:
+            flash(f"Alert set! We'll email {email} when a '{keyword}' item is posted.", "success")
     else:
-        flash("Please enter both your email and a keyword.", "error")
+        flash("Please enter your email and a keyword.", "error")
     return redirect(url_for("items"))
 
 
@@ -870,12 +977,19 @@ def admin_dashboard():
         WHERE claims.status='pending' ORDER BY claims.id DESC
     """).fetchall()
     notifications = db.execute("SELECT * FROM notifications ORDER BY id DESC").fetchall()
+    sms_logs = db.execute("""
+        SELECT sms_log.*, notifications.email, notifications.keyword
+        FROM sms_log
+        LEFT JOIN notifications ON sms_log.notification_id = notifications.id
+        ORDER BY sms_log.id DESC LIMIT 50
+    """).fetchall()
     # active_tab lets the page auto-open the right tab (e.g. "pending" after a new report)
     active_tab = request.args.get("tab", "pending")
     return render_template("admin.html",
         pending_items=pending_items, approved_items=approved_items,
         claimed_items=claimed_items, pending_claims=pending_claims,
-        notifications=notifications, active_tab=active_tab)
+        notifications=notifications, sms_logs=sms_logs, active_tab=active_tab,
+        twilio_configured=all([TWILIO_SID, TWILIO_TOKEN, TWILIO_FROM]))
 
 
 @app.route("/admin/action", methods=["POST"])
@@ -892,8 +1006,19 @@ def admin_action():
         db.execute("UPDATE items SET status='approved' WHERE id=?", (item_id,))
         db.execute("INSERT INTO item_events (item_id, event, detail, timestamp) VALUES (?,?,?,?)",
             (item_id, "approved", "Item approved and published by admin", datetime.now().strftime("%Y-%m-%d %H:%M")))
-        flash("Item approved and is now live!", "success")
-        tab = "approved"  # jump to Live tab so judges see it appeared
+        # Fire SMS notifications to any subscriber whose keyword matches this item
+        item_row = db.execute("SELECT name, category, location FROM items WHERE id=?", (item_id,)).fetchone()
+        if item_row:
+            sms_count = fire_item_notifications(
+                item_id, item_row["name"], item_row["category"], item_row["location"], db
+            )
+            if sms_count > 0:
+                flash(f"Item approved and live! {sms_count} SMS alert(s) sent.", "success")
+            else:
+                flash("Item approved and is now live!", "success")
+        else:
+            flash("Item approved and is now live!", "success")
+        tab = "approved"
     elif action == "reject_item":
         db.execute("DELETE FROM items WHERE id=?", (item_id,))
         flash("Item rejected and removed.", "success")
