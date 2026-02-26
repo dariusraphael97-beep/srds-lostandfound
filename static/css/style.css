@@ -32,7 +32,7 @@
    Fonts: Cormorant Garamond (display) + DM Sans (UI/body)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+/* Fonts loaded via <link> in base.html for better performance */
 
 :root {
   --navy:        #060d1f;
@@ -89,7 +89,7 @@ html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--ac
 ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--navy);
   color: var(--white);
   line-height: 1.65;
@@ -338,7 +338,7 @@ nav.scrolled {
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 13px 30px; border-radius: var(--radius-sm);
-  font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.9rem; font-weight: 600;
   cursor: pointer; transition: all var(--transition); border: 1.5px solid transparent;
   text-decoration: none; line-height: 1; position: relative; overflow: hidden;
 }
@@ -458,7 +458,7 @@ label .required { color: var(--error); margin-left: 2px; }
 input[type="text"], input[type="email"], input[type="date"], input[type="password"], select, textarea {
   width: 100%; padding: 13px 18px;
   border: 1.5px solid var(--white-10); border-radius: var(--radius-sm);
-  font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.95rem;
   color: var(--white); background: var(--white-05);
   transition: all var(--transition); appearance: none;
 }
@@ -683,7 +683,7 @@ footer .accent-text { color: var(--accent); }
 
 /* ── Date range preset buttons ── */
 .range-preset {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.72rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.08em;
   padding: 5px 12px; border-radius: 100px;
