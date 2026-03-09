@@ -595,17 +595,12 @@ input[type="file"] { display: none; }
 /* ─── Scroll reveal ──────────────────────────────────────────── */
 .reveal {
   opacity: 0;
-  transform: translateY(36px);
-  filter: blur(6px);
-  will-change: opacity, transform, filter;
-  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
-  filter: blur(0px);
 }
 /* delays handled dynamically in JS based on sibling index */
 .reveal-delay-1 { transition-delay: 0.05s; }

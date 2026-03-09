@@ -49,7 +49,7 @@
         <li><a href="{{ url_for('lost_report') }}" class="{% if request.endpoint == 'lost_report' %}active{% endif %}">I Lost Something</a></li>
         <li><a href="{{ url_for('report') }}"      class="btn-nav {% if request.endpoint == 'report' %}active{% endif %}">+ Found Item</a></li>
         {% if session.get('admin') %}
-        <li><a href="{{ url_for('admin_dashboard') }}" class="btn-nav btn-nav-admin {% if 'admin' in request.endpoint %}active{% endif %}">Admin</a></li>
+        <li><a href="{{ url_for('admin_dashboard') }}" class="btn-nav btn-nav-admin {% if request.endpoint and 'admin' in request.endpoint %}active{% endif %}">Admin</a></li>
         {% endif %}
       </ul>
 

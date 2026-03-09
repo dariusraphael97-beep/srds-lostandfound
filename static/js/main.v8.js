@@ -1,36 +1,37 @@
 /* ============================================================
-   SRDS Lost & Found - main.js v4
+   SRDS Lost & Found — main.js v8
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
+
   const sunSVG  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
   const moonSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 
-  /* PAGE TRANSITIONS REMOVED */
-
   /* ===================== SCROLL REVEAL ===================== */
-  // All .reveal elements start invisible in CSS.
-  // We fire the observer with a generous rootMargin so animations
-  // begin WELL before the element reaches the viewport - giving the
-  // appearance of content rising up smoothly as you approach it.
+  // Elements with .reveal start hidden via CSS.
+  // As you scroll down, they animate in with a stagger based on sibling order.
   const reveals = document.querySelectorAll('.reveal');
-  if (reveals.length) {
+  if (reveals.length && 'IntersectionObserver' in window) {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Small stagger based on position in its sibling group
-          const siblings = Array.from(entry.target.parentElement?.children || []);
-          const idx = siblings.filter(el => el.classList.contains('reveal')).indexOf(entry.target);
-          const delay = Math.min(idx * 55, 200);
-          setTimeout(() => entry.target.classList.add('visible'), delay);
-          obs.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        // Find stagger index among .reveal siblings
+        const siblings = Array.from(el.parentElement ? el.parentElement.children : []);
+        const revealSiblings = siblings.filter(s => s.classList.contains('reveal'));
+        const idx = revealSiblings.indexOf(el);
+        const delay = Math.min(idx * 80, 320);
+        setTimeout(() => el.classList.add('visible'), delay);
+        obs.unobserve(el);
       });
     }, {
       threshold: 0,
-      rootMargin: '0px 0px 160px 0px'  // fire 160px before bottom of viewport
+      rootMargin: '0px 0px -40px 0px'
     });
     reveals.forEach(el => obs.observe(el));
+  } else {
+    // Fallback: just show everything
+    reveals.forEach(el => el.classList.add('visible'));
   }
 
   /* ===================== SPOTLIGHT CURSOR ===================== */
@@ -39,9 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let tx = window.innerWidth / 2, ty = window.innerHeight / 2;
     let cx = tx, cy = ty;
     let running = true;
-
     document.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; }, { passive: true });
-
     const follow = () => {
       if (!running) return;
       cx += (tx - cx) * 0.06;
@@ -49,19 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
       spotlight.style.transform = `translate(calc(-50% + ${cx}px), calc(-50% + ${cy}px))`;
       requestAnimationFrame(follow);
     };
-    spotlight.style.top = '0';
-    spotlight.style.left = '0';
+    spotlight.style.top = '0'; spotlight.style.left = '0';
     follow();
-
     document.querySelectorAll('a, button, .card').forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        spotlight.style.background = 'radial-gradient(circle, rgba(61,114,200,0.12) 0%, rgba(61,114,200,0.04) 40%, transparent 70%)';
-      }, { passive: true });
-      el.addEventListener('mouseleave', () => {
-        spotlight.style.background = 'radial-gradient(circle, rgba(61,114,200,0.065) 0%, rgba(61,114,200,0.025) 40%, transparent 70%)';
-      }, { passive: true });
+      el.addEventListener('mouseenter', () => { spotlight.style.background = 'radial-gradient(circle, rgba(61,114,200,0.12) 0%, rgba(61,114,200,0.04) 40%, transparent 70%)'; }, { passive: true });
+      el.addEventListener('mouseleave', () => { spotlight.style.background = 'radial-gradient(circle, rgba(61,114,200,0.065) 0%, rgba(61,114,200,0.025) 40%, transparent 70%)'; }, { passive: true });
     });
-
     document.addEventListener('visibilitychange', () => { running = !document.hidden; if (running) follow(); });
   } else {
     if (spotlight) spotlight.style.display = 'none';
@@ -104,18 +96,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (counters.length) {
     const counterObs = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          const target = parseInt(el.dataset.target, 10);
-          const start = performance.now();
-          const animate = (now) => {
-            const p = Math.min((now - start) / 1600, 1);
-            el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
-            if (p < 1) requestAnimationFrame(animate);
-          };
-          requestAnimationFrame(animate);
-          counterObs.unobserve(el);
-        }
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const target = parseInt(el.dataset.target, 10);
+        const start = performance.now();
+        const animate = (now) => {
+          const p = Math.min((now - start) / 1600, 1);
+          el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
+          if (p < 1) requestAnimationFrame(animate);
+        };
+        requestAnimationFrame(animate);
+        counterObs.unobserve(el);
       });
     }, { threshold: 0.5 });
     counters.forEach(el => counterObs.observe(el));
@@ -144,23 +135,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const badge = document.querySelector('.bookmark-count');
     if (badge) { const c = getBookmarks().length; badge.textContent = c; badge.style.display = c > 0 ? 'flex' : 'none'; }
   };
-
   document.querySelectorAll('.bookmark-btn').forEach(btn => {
     const id = btn.dataset.id;
     if (getBookmarks().includes(id)) { btn.classList.add('saved'); btn.innerHTML = svgBMS; }
     btn.addEventListener('click', () => {
       let bm = getBookmarks();
       if (bm.includes(id)) {
-        bm = bm.filter(x => x !== id);
-        btn.classList.remove('saved'); btn.innerHTML = svgBM;
-        showToast('Bookmark removed');
+        bm = bm.filter(x => x !== id); btn.classList.remove('saved'); btn.innerHTML = svgBM; showToast('Bookmark removed');
       } else {
-        bm.push(id);
-        btn.classList.add('saved'); btn.innerHTML = svgBMS;
-        showToast('Saved');
+        bm.push(id); btn.classList.add('saved'); btn.innerHTML = svgBMS; showToast('Saved');
       }
-      saveBookmarks(bm);
-      updateBookmarkBadge();
+      saveBookmarks(bm); updateBookmarkBadge();
     });
   });
   updateBookmarkBadge();
@@ -168,9 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ===================== FLASH AUTO-DISMISS ===================== */
   document.querySelectorAll('.flash').forEach(el => {
     setTimeout(() => {
-      el.style.transition = 'all 0.5s ease';
-      el.style.opacity = '0';
-      el.style.transform = 'translateX(120%)';
+      el.style.transition = 'all 0.5s ease'; el.style.opacity = '0'; el.style.transform = 'translateX(120%)';
       setTimeout(() => el.remove(), 500);
     }, 4500);
   });
@@ -178,17 +161,12 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ===================== TOAST ===================== */
   window.showToast = (msg, type = 'success') => {
     const container = document.querySelector('.flash-container') || (() => {
-      const c = document.createElement('div'); c.className = 'flash-container';
-      document.body.appendChild(c); return c;
+      const c = document.createElement('div'); c.className = 'flash-container'; document.body.appendChild(c); return c;
     })();
     const toast = document.createElement('div');
-    toast.className = `flash ${type}`;
-    toast.innerHTML = msg;
-    container.appendChild(toast);
+    toast.className = `flash ${type}`; toast.innerHTML = msg; container.appendChild(toast);
     setTimeout(() => {
-      toast.style.transition = 'all 0.4s ease';
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(120%)';
+      toast.style.transition = 'all 0.4s ease'; toast.style.opacity = '0'; toast.style.transform = 'translateX(120%)';
       setTimeout(() => toast.remove(), 400);
     }, 2800);
   };
@@ -199,10 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let ticking = false;
     window.addEventListener('scroll', () => {
       if (!ticking) {
-        requestAnimationFrame(() => {
-          heroBg.style.transform = `translateY(${window.scrollY * 0.28}px)`;
-          ticking = false;
-        });
+        requestAnimationFrame(() => { heroBg.style.transform = `translateY(${window.scrollY * 0.28}px)`; ticking = false; });
         ticking = true;
       }
     }, { passive: true });
@@ -223,8 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let valid = true;
       form.querySelectorAll('[required]').forEach(field => {
         if (!field.value.trim()) {
-          field.style.borderColor = 'var(--error)';
-          field.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.18)';
+          field.style.borderColor = 'var(--error)'; field.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.18)';
           valid = false;
           field.addEventListener('input', () => { field.style.borderColor = ''; field.style.boxShadow = ''; }, { once: true });
         }
