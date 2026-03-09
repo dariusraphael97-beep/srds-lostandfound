@@ -6,26 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sunSVG  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
   const moonSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 
-  /* ===================== PAGE TRANSITIONS ===================== */
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:#05091a;z-index:9000;pointer-events:none;transform:scaleY(0);transform-origin:bottom;transition:transform 0.3s cubic-bezier(0.76,0,0.24,1);';
-  document.body.appendChild(overlay);
-
-  document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([href^="mailto"])').forEach(link => {
-    if (!link.href || link.href.startsWith('javascript')) return;
-    link.addEventListener('click', e => {
-      if (link.href === window.location.href) return;
-      e.preventDefault();
-      const dest = link.href;
-      overlay.style.transformOrigin = 'bottom';
-      overlay.style.transform = 'scaleY(1)';
-      setTimeout(() => { window.location.href = dest; }, 300);
-    });
-  });
-
-  overlay.style.transformOrigin = 'top';
-  overlay.style.transform = 'scaleY(1)';
-  requestAnimationFrame(() => setTimeout(() => { overlay.style.transform = 'scaleY(0)'; }, 50));
+  /* PAGE TRANSITIONS REMOVED */
 
   /* ===================== SCROLL REVEAL ===================== */
   // All .reveal elements start invisible in CSS.
