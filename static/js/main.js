@@ -1,5 +1,5 @@
 /* ============================================================
-   SRDS Lost & Found — main.js v4
+   SRDS Lost & Found - main.js v4
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ===================== SCROLL REVEAL ===================== */
   // All .reveal elements start invisible in CSS.
   // We fire the observer with a generous rootMargin so animations
-  // begin WELL before the element reaches the viewport — giving the
+  // begin WELL before the element reaches the viewport - giving the
   // appearance of content rising up smoothly as you approach it.
   const reveals = document.querySelectorAll('.reveal');
   if (reveals.length) {

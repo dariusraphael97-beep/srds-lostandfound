@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Claim Item — SRDS Lost & Found{% endblock %}
+{% block title %}Claim Item - SRDS Lost & Found{% endblock %}
 
 {% block content %}
 <header class="page-header" aria-labelledby="claim-heading">
@@ -63,7 +63,7 @@
           <div class="form-group">
             <label for="student_id">Grade <span class="required">*</span></label>
             <select id="student_id" name="student_id" required>
-              <option value="" disabled selected>Select your grade…</option>
+              <option value="" disabled selected>Select your grade...</option>
               <option value="Grade 6">Grade 6</option>
               <option value="Grade 7">Grade 7</option>
               <option value="Grade 8">Grade 8</option>
@@ -76,7 +76,7 @@
           </div>
           <div class="form-group">
             <label for="message">Additional Notes <span style="color:var(--white-40); font-weight:400; text-transform:none;">(optional)</span></label>
-            <textarea id="message" name="message" placeholder="Anything else you want staff to know…"></textarea>
+            <textarea id="message" name="message" placeholder="Anything else you want staff to know..."></textarea>
           </div>
 
           <!-- PRIVATE PROOF SECTION -->
@@ -87,19 +87,19 @@
               <span style="font-size:0.68rem; background:rgba(34,197,94,0.15); color:var(--success); border:1px solid rgba(34,197,94,0.25); padding:2px 8px; border-radius:100px; font-weight:700; margin-left:auto;">Strongly Recommended</span>
             </div>
             <p style="font-size:0.82rem; color:var(--white-40); margin-bottom:16px; line-height:1.6;">
-              Describe a <strong style="color:var(--white-70);">hidden detail only the real owner would know</strong> — a scratch, a sticker on the inside, what's written on the back, missing parts, what was in the bag, etc. This is <em>not shown publicly</em>. It just helps staff verify your claim faster and gives you a higher Proof Score.
+              Describe a <strong style="color:var(--white-70);">hidden detail only the real owner would know</strong> - a scratch, a sticker on the inside, what's written on the back, missing parts, what was in the bag, etc. This is <em>not shown publicly</em>. It just helps staff verify your claim faster and gives you a higher Proof Score.
             </p>
             <div class="form-group" style="margin-bottom:14px;">
               <label for="proof_detail" style="font-size:0.78rem;">Secret Identifying Detail <span style="color:var(--error);">*</span></label>
               <textarea id="proof_detail" name="proof_detail" rows="3"
-                placeholder="e.g. It's a black case with a small sticker on the back. My initials are written inside the flap. There's a scratch on the top-right corner…" required></textarea>
+                placeholder="e.g. It's a black case with a small sticker on the back. My initials are written inside the flap. There's a scratch on the top-right corner..." required></textarea>
             </div>
 
             <!-- Live proof score meter -->
             <div style="background:var(--white-05); border:1px solid var(--white-10); border-radius:var(--radius-sm); padding:12px 16px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <span style="font-size:0.75rem; color:var(--white-70); font-weight:600;">Proof Score</span>
-                <span id="proof-score-label" style="font-size:0.85rem; font-weight:700; color:var(--white-40);">Start typing…</span>
+                <span id="proof-score-label" style="font-size:0.85rem; font-weight:700; color:var(--white-40);">Start typing...</span>
               </div>
               <div style="height:6px; background:var(--white-10); border-radius:3px; overflow:hidden;">
                 <div id="proof-score-bar" style="height:100%; width:0%; border-radius:3px; transition:width 0.4s ease, background 0.4s ease; background:var(--accent);"></div>
@@ -149,20 +149,20 @@ proofInput?.addEventListener('input', () => {
   const s = calcScore(proofInput.value);
   scoreBar.style.width = s + '%';
   if (s === 0) {
-    scoreLabel.textContent = 'Start typing…';
+    scoreLabel.textContent = 'Start typing...';
     scoreLabel.style.color = 'var(--white-40)';
     scoreBar.style.background = 'var(--accent)';
   } else if (s < 25) {
     scoreBar.style.background = '#f87171';
-    scoreLabel.textContent = s + '% — Keep going, add more detail';
+    scoreLabel.textContent = s + '% - Keep going, add more detail';
     scoreLabel.style.color = '#f87171';
   } else if (s < 50) {
     scoreBar.style.background = 'var(--warning)';
-    scoreLabel.textContent = s + '% — Good, mention a specific detail';
+    scoreLabel.textContent = s + '% - Good, mention a specific detail';
     scoreLabel.style.color = 'var(--warning)';
   } else {
     scoreBar.style.background = '#4ade80';
-    scoreLabel.textContent = s + '% — Great proof, you're good to submit';
+    scoreLabel.textContent = s + '% - Great proof, looks good!';
     scoreLabel.style.color = '#4ade80';
   }
 });
