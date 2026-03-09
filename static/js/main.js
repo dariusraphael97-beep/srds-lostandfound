@@ -7,33 +7,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const moonSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 
   /* ===================== PAGE TRANSITIONS ===================== */
-  // Curtain div is in the HTML. CSS animates it to opacity:0 on load.
-  // On navigation: add .leaving class which animates it back to opacity:1.
-  const curtain = document.getElementById('page-curtain');
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:#05091a;z-index:9000;pointer-events:none;transform:scaleY(0);transform-origin:bottom;transition:transform 0.3s cubic-bezier(0.76,0,0.24,1);';
+  document.body.appendChild(overlay);
 
-  function navigateTo(dest) {
-    if (!curtain) { window.location.href = dest; return; }
-    curtain.classList.add('leaving');
-    setTimeout(() => { window.location.href = dest; }, 380);
-  }
-
-  document.querySelectorAll('a').forEach(link => {
-    const href = link.getAttribute('href');
-    if (!href) return;
-    if (link.target === '_blank') return;
-    if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript')) return;
+  document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([href^="mailto"])').forEach(link => {
+    if (!link.href || link.href.startsWith('javascript')) return;
     link.addEventListener('click', e => {
-      const dest = link.href;
-      if (!dest || dest === window.location.href) return;
-      try {
-        const u = new URL(dest);
-        if (u.hash && u.pathname === window.location.pathname) return;
-        if (u.origin !== window.location.origin) return;
-      } catch { return; }
+      if (link.href === window.location.href) return;
       e.preventDefault();
-      navigateTo(dest);
+      const dest = link.href;
+      overlay.style.transformOrigin = 'bottom';
+      overlay.style.transform = 'scaleY(1)';
+      setTimeout(() => { window.location.href = dest; }, 300);
     });
   });
+
+  overlay.style.transformOrigin = 'top';
+  overlay.style.transform = 'scaleY(1)';
+  requestAnimationFrame(() => setTimeout(() => { overlay.style.transform = 'scaleY(0)'; }, 50));
 
   /* ===================== SCROLL REVEAL ===================== */
   // All .reveal elements start invisible in CSS.
