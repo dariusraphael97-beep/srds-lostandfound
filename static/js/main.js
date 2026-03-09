@@ -7,35 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const moonSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 
   /* ===================== PAGE TRANSITIONS ===================== */
-  // Fade + lift on exit, fade + drop on enter
-  // ── PAGE TRANSITION CURTAIN ──────────────────────────────
-  // A fixed dark overlay that fades out on load and fades in on navigation.
-  // Using hardcoded hex so CSS variables don't need to resolve first.
-  const isDark = !document.body.classList.contains('light-mode');
-  const curtain = document.createElement('div');
-  curtain.id = 'page-curtain';
-  Object.assign(curtain.style, {
-    position:   'fixed',
-    inset:      '0',
-    zIndex:     '9999',
-    background: '#05091a',
-    opacity:    '1',
-    transition: 'none',
-    pointerEvents: 'none',
-  });
-  document.body.appendChild(curtain);
-
-  // Tick twice so the browser registers opacity:1 before we animate to 0
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    curtain.style.transition = 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-    curtain.style.opacity = '0';
-  }));
+  // Curtain div is in the HTML. CSS animates it to opacity:0 on load.
+  // On navigation: add .leaving class which animates it back to opacity:1.
+  const curtain = document.getElementById('page-curtain');
 
   function navigateTo(dest) {
-    curtain.style.transition = 'opacity 0.35s cubic-bezier(0.4, 0, 1, 1)';
-    curtain.style.opacity = '1';
-    curtain.style.pointerEvents = 'all';
-    setTimeout(() => { window.location.href = dest; }, 360);
+    if (!curtain) { window.location.href = dest; return; }
+    curtain.classList.add('leaving');
+    setTimeout(() => { window.location.href = dest; }, 380);
   }
 
   document.querySelectorAll('a').forEach(link => {
@@ -49,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const u = new URL(dest);
         if (u.hash && u.pathname === window.location.pathname) return;
-        // Only intercept same-origin links
         if (u.origin !== window.location.origin) return;
       } catch { return; }
       e.preventDefault();

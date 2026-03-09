@@ -1,3 +1,26 @@
+
+/* ── Page transition curtain ──────────────────────────────── */
+#page-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #05091a;
+  pointer-events: none;
+  opacity: 1;
+  animation: curtain-in 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes curtain-in {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+#page-curtain.leaving {
+  animation: curtain-out 0.35s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: all;
+}
+@keyframes curtain-out {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
 /* ============================================================
    SRDS Lost & Found — style.css v4.0
    Saddle River Day School | FBLA Website Coding & Development 2025-2026
