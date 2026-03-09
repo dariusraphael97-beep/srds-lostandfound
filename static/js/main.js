@@ -8,50 +8,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ===================== PAGE TRANSITIONS ===================== */
   // Fade + lift on exit, fade + drop on enter
+  // ── PAGE TRANSITION CURTAIN ──────────────────────────────
+  // A fixed dark overlay that fades out on load and fades in on navigation.
+  // Using hardcoded hex so CSS variables don't need to resolve first.
+  const isDark = !document.body.classList.contains('light-mode');
   const curtain = document.createElement('div');
   curtain.id = 'page-curtain';
-  curtain.style.cssText = [
-    'position:fixed', 'inset:0', 'z-index:9999',
-    'pointer-events:none',
-    'background:var(--navy)',
-    'opacity:1',
-    'transition:opacity 0.45s cubic-bezier(0.4,0,0.2,1)',
-  ].join(';');
+  Object.assign(curtain.style, {
+    position:   'fixed',
+    inset:      '0',
+    zIndex:     '9999',
+    background: '#05091a',
+    opacity:    '1',
+    transition: 'none',
+    pointerEvents: 'none',
+  });
   document.body.appendChild(curtain);
 
-  // Fade in on load — curtain starts opaque, dissolves away
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      curtain.style.opacity = '0';
-    });
-  });
+  // Tick twice so the browser registers opacity:1 before we animate to 0
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    curtain.style.transition = 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+    curtain.style.opacity = '0';
+  }));
 
-  // Intercept all internal navigation links
+  function navigateTo(dest) {
+    curtain.style.transition = 'opacity 0.35s cubic-bezier(0.4, 0, 1, 1)';
+    curtain.style.opacity = '1';
+    curtain.style.pointerEvents = 'all';
+    setTimeout(() => { window.location.href = dest; }, 360);
+  }
+
   document.querySelectorAll('a').forEach(link => {
     const href = link.getAttribute('href');
     if (!href) return;
     if (link.target === '_blank') return;
-    if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-    if (href.startsWith('javascript')) return;
-
+    if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript')) return;
     link.addEventListener('click', e => {
       const dest = link.href;
-      if (!dest || dest === window.location.href + '#') return;
-      // Same-page anchor
-      try { const u = new URL(dest); if (u.hash && u.pathname === window.location.pathname) return; } catch {}
-
+      if (!dest || dest === window.location.href) return;
+      try {
+        const u = new URL(dest);
+        if (u.hash && u.pathname === window.location.pathname) return;
+        // Only intercept same-origin links
+        if (u.origin !== window.location.origin) return;
+      } catch { return; }
       e.preventDefault();
-      curtain.style.transition = 'opacity 0.3s cubic-bezier(0.4,0,1,1)';
-      curtain.style.opacity = '1';
-      setTimeout(() => { window.location.href = dest; }, 310);
-    });
-  });
-
-  // Also handle form submissions with a brief fade
-  document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', () => {
-      curtain.style.transition = 'opacity 0.2s ease';
-      curtain.style.opacity = '0.6';
+      navigateTo(dest);
     });
   });
 
