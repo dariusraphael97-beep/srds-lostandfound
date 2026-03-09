@@ -92,7 +92,7 @@
             <div class="form-group" style="margin-bottom:14px;">
               <label for="proof_detail" style="font-size:0.78rem;">Secret Identifying Detail <span style="color:var(--error);">*</span></label>
               <textarea id="proof_detail" name="proof_detail" rows="3"
-                placeholder="e.g. There's a crack on the bottom-right corner of the case. My name 'J. Morris' is written in Sharpie on the back. The keychain has a small blue star charm…" required></textarea>
+                placeholder="e.g. It's a black case with a small sticker on the back. My initials are written inside the flap. There's a scratch on the top-right corner…" required></textarea>
             </div>
 
             <!-- Live proof score meter -->
@@ -104,7 +104,7 @@
               <div style="height:6px; background:var(--white-10); border-radius:3px; overflow:hidden;">
                 <div id="proof-score-bar" style="height:100%; width:0%; border-radius:3px; transition:width 0.4s ease, background 0.4s ease; background:var(--accent);"></div>
               </div>
-              <p style="font-size:0.7rem; color:var(--white-40); margin-top:8px;">Higher score = faster approval. Mention specifics like scratches, initials, serial digits, contents, or color details.</p>
+              <p style="font-size:0.7rem; color:var(--white-40); margin-top:8px;">A sentence or two is plenty. Mention the color, any marks, what was inside, or where your name is written.</p>
             </div>
           </div>
 
@@ -129,32 +129,41 @@
 const proofInput = document.getElementById('proof_detail');
 const scoreBar   = document.getElementById('proof-score-bar');
 const scoreLabel = document.getElementById('proof-score-label');
-const keywords   = ['serial','number','sticker','scratch','crack','initials','broken',
-  'dent','tag','wrote','name','code','charm','inside','pocket','keychain','sharpie',
-  'marker','missing','chipped','strap','writing','digits','model','color','pattern'];
+const keywords   = [
+  'serial','number','sticker','scratch','crack','initials','color',
+  'broken','dent','tag','wrote','name','code','charm','inside',
+  'pocket','keychain','sharpie','marker','missing','chipped','strap',
+  'writing','digits','model','pattern','brand','label','date','case',
+  'cover','black','white','blue','red','green','yellow','purple','pink'
+];
 
 function calcScore(text) {
   if (!text.trim()) return 0;
-  let s = Math.min(40, Math.floor(text.trim().length / 4));
-  keywords.forEach(kw => { if (text.toLowerCase().includes(kw)) s += 8; });
+  const words = text.trim().split(/\s+/).length;
+  let s = Math.min(60, words * 5);
+  keywords.forEach(kw => { if (text.toLowerCase().includes(kw)) s += 6; });
   return Math.min(s, 100);
 }
 
 proofInput?.addEventListener('input', () => {
   const s = calcScore(proofInput.value);
   scoreBar.style.width = s + '%';
-  if (s < 30) {
-    scoreBar.style.background = 'var(--error)';
-    scoreLabel.textContent = s + '% — Weak, add more detail';
-    scoreLabel.style.color = 'var(--error)';
-  } else if (s < 60) {
+  if (s === 0) {
+    scoreLabel.textContent = 'Start typing…';
+    scoreLabel.style.color = 'var(--white-40)';
+    scoreBar.style.background = 'var(--accent)';
+  } else if (s < 25) {
+    scoreBar.style.background = '#f87171';
+    scoreLabel.textContent = s + '% — Keep going, add more detail';
+    scoreLabel.style.color = '#f87171';
+  } else if (s < 50) {
     scoreBar.style.background = 'var(--warning)';
-    scoreLabel.textContent = s + '% — Getting there…';
+    scoreLabel.textContent = s + '% — Good, mention a specific detail';
     scoreLabel.style.color = 'var(--warning)';
   } else {
-    scoreBar.style.background = 'var(--success)';
-    scoreLabel.textContent = s + '% — Strong proof ✓';
-    scoreLabel.style.color = 'var(--success)';
+    scoreBar.style.background = '#4ade80';
+    scoreLabel.textContent = s + '% — Great proof, you're good to submit';
+    scoreLabel.style.color = '#4ade80';
   }
 });
 </script>

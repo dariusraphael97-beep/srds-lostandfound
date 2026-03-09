@@ -700,14 +700,23 @@ def claim(item_id):
             return redirect(url_for("claim", item_id=item_id))
 
         proof_detail = request.form.get("proof_detail", "").strip()
-        # Calculate proof score: longer + more specific = higher
+        # Calculate proof score: more generous — any real description gets to green
         proof_score = 0
         if proof_detail:
-            proof_score += min(50, len(proof_detail) // 3)
-            specific_keywords = ["serial","number","sticker","scratch","crack","initials","color","broken","dent","tag","wrote","name","code"]
+            words = len(proof_detail.split())
+            # Base: 5 pts per word, up to 60 pts (12 words = full base)
+            proof_score += min(60, words * 5)
+            # Bonus: specific identifying keywords
+            specific_keywords = [
+                "serial","number","sticker","scratch","crack","initials","color",
+                "broken","dent","tag","wrote","name","code","charm","inside",
+                "pocket","keychain","sharpie","marker","missing","chipped","strap",
+                "writing","digits","model","pattern","brand","label","date","case",
+                "cover","black","white","blue","red","green","yellow","purple","pink"
+            ]
             for kw in specific_keywords:
                 if kw in proof_detail.lower():
-                    proof_score += 8
+                    proof_score += 6
             proof_score = min(proof_score, 100)
 
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
