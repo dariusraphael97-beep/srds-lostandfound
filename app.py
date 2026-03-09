@@ -731,12 +731,12 @@ def claim(item_id):
 def notify():
     email   = request.form.get("email",   "").strip()
     keyword = request.form.get("keyword", "").strip()
-    phone   = request.form.get("phone",   "").strip()
+
     if email and keyword:
         db = get_db()
         db.execute(
-            "INSERT INTO notifications (email, keyword, phone, created) VALUES (?,?,?,?)",
-            (email, keyword, phone or None, datetime.now().strftime("%Y-%m-%d %H:%M"))
+            "INSERT INTO notifications (email, keyword, created) VALUES (?,?,?)",
+            (email, keyword, datetime.now().strftime("%Y-%m-%d %H:%M"))
         )
         db.commit()
         if phone:
@@ -1043,6 +1043,64 @@ def admin_action():
 
     db.commit()
     return redirect(url_for("admin_dashboard", tab=tab))
+
+
+
+@app.route("/admin/edit/<int:item_id>", methods=["GET", "POST"])
+def admin_edit(item_id):
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+    db = get_db()
+
+    if request.method == "POST":
+        name        = request.form.get("name", "").strip()
+        category    = request.form.get("category", "").strip()
+        description = request.form.get("description", "").strip()
+        location    = request.form.get("location", "").strip()
+        date_found  = request.form.get("date_found", "").strip()
+
+        # Handle new photo upload
+        new_photo = None
+        if "photo" in request.files:
+            file = request.files["photo"]
+            if file and file.filename and allowed_file(file.filename):
+                new_photo = secure_filename(
+                    f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+                )
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], new_photo))
+
+        if new_photo:
+            # New photo uploaded — clear photo_url fallback too
+            db.execute(
+                "UPDATE items SET name=?, category=?, description=?, location=?, date_found=?, photo=?, photo_url=NULL WHERE id=?",
+                (name, category, description, location, date_found, new_photo, item_id)
+            )
+        else:
+            db.execute(
+                "UPDATE items SET name=?, category=?, description=?, location=?, date_found=? WHERE id=?",
+                (name, category, description, location, date_found, item_id)
+            )
+        db.commit()
+        flash("Item updated successfully.", "success")
+        # Redirect back to the right tab
+        item = db.execute("SELECT status FROM items WHERE id=?", (item_id,)).fetchone()
+        tab = item["status"] if item else "pending"
+        if tab not in ("pending", "approved", "claimed"):
+            tab = "pending"
+        return redirect(url_for("admin_dashboard", tab=tab))
+
+    # GET — load item
+    item = db.execute("SELECT * FROM items WHERE id=?", (item_id,)).fetchone()
+    if not item:
+        flash("Item not found.", "error")
+        return redirect(url_for("admin_dashboard"))
+    item = enrich_items([item])[0]
+    categories = [
+        "Clothing & Apparel", "Electronics", "Books & Stationery",
+        "Bags & Backpacks", "Sports Equipment", "Jewelry & Accessories",
+        "Keys", "Water Bottles", "Other"
+    ]
+    return render_template("admin_edit.html", item=item, categories=categories)
 
 
 @app.route("/admin/logout")

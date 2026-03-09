@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
           revealObs.unobserve(entry.target); // unobserve immediately — no ongoing work
         }
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+    }, { threshold: 0.05, rootMargin: '0px 0px 60px 0px' });
     reveals.forEach(el => revealObs.observe(el));
   }
 

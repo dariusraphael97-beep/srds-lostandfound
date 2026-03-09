@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Edit Item #{{ item.id }} — SRDS Admin{% endblock %}
+
+{% block content %}
+<header class="page-header" aria-labelledby="edit-heading">
+  <div class="container">
+    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:16px;">Admin — Edit Item</div>
+    <h1 id="edit-heading" style="font-size:2.2rem;">Editing: {{ item.name }}</h1>
+    <p>Item #{{ item.id }} &nbsp;·&nbsp; Status: <strong style="color:var(--white-70);">{{ item.status }}</strong></p>
+  </div>
+</header>
+
+<section class="section-sm">
+  <div class="container" style="max-width:780px;">
+
+    <form method="POST" action="{{ url_for('admin_edit', item_id=item.id) }}"
+          enctype="multipart/form-data" style="display:contents;">
+
+      <div class="form-card">
+
+        <!-- Current photo preview -->
+        <div class="form-group">
+          <label>Current Photo</label>
+          <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+            <div style="width:160px; height:120px; border-radius:var(--radius); overflow:hidden;
+                        border:1px solid var(--white-10); background:var(--navy-mid); flex-shrink:0;">
+              {% if item.photo %}
+                <img src="{{ url_for('uploaded_file', filename=item.photo) }}"
+                     alt="Current photo" style="width:100%; height:100%; object-fit:cover;" />
+              {% elif item.photo_url %}
+                <img src="{{ item.photo_url }}"
+                     alt="Current photo" style="width:100%; height:100%; object-fit:cover;"
+                     onerror="this.style.display='none'" />
+              {% else %}
+                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"
+                       style="width:36px;height:36px;opacity:0.2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                </div>
+              {% endif %}
+            </div>
+            <div style="flex:1; min-width:180px;">
+              <p style="font-size:0.82rem; color:var(--white-40); margin-bottom:12px; line-height:1.6;">
+                Upload a new photo to replace the current one.<br>
+                Leave blank to keep the existing photo.<br>
+                <strong style="color:var(--white-70);">JPG, PNG, GIF, or WEBP — max 16 MB.</strong>
+              </p>
+              <label for="photo" class="file-upload-label" style="padding:18px 20px;">
+                <div class="file-upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                </div>
+                <span style="font-size:0.84rem; font-weight:600;">Click to upload new photo</span>
+                <span id="fileNameLabel" style="font-size:0.75rem; color:var(--white-20);">No file chosen</span>
+              </label>
+              <input type="file" id="photo" name="photo" accept="image/*" />
+            </div>
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--white-06); margin:8px 0 24px;" />
+
+        <!-- Item name -->
+        <div class="form-group">
+          <label for="name">Item Name <span class="required">*</span></label>
+          <input type="text" id="name" name="name" value="{{ item.name }}" required />
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label for="category">Category <span class="required">*</span></label>
+          <select id="category" name="category" required>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if cat == item.category %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="description">Description <span class="required">*</span></label>
+          <textarea id="description" name="description" rows="4" required>{{ item.description }}</textarea>
+        </div>
+
+        <!-- Location + Date row -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="location">Location Found <span class="required">*</span></label>
+            <input type="text" id="location" name="location" value="{{ item.location }}" required />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="date_found">Date Found <span class="required">*</span></label>
+            <input type="date" id="date_found" name="date_found" value="{{ item.date_found }}" required />
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex; gap:12px; margin-top:32px; flex-wrap:wrap;">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <a href="{{ url_for('admin_dashboard', tab=item.status if item.status in ['pending','approved','claimed'] else 'pending') }}"
+             class="btn btn-outline">Cancel</a>
+          <a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-glass btn-sm"
+             target="_blank" style="margin-left:auto;">View Live →</a>
+        </div>
+
+      </div>
+
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Show chosen filename
+  document.getElementById('photo').addEventListener('change', function() {
+    const label = document.getElementById('fileNameLabel');
+    if (this.files && this.files[0]) {
+      label.textContent = this.files[0].name;
+      label.style.color = 'var(--accent-light)';
+
+      // Preview the new image
+      const reader = new FileReader();
+      reader.onload = e => {
+        const preview = document.querySelector('.form-card img');
+        if (preview) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        }
+      };
+      reader.readAsDataURL(this.files[0]);
+    } else {
+      label.textContent = 'No file chosen';
+      label.style.color = '';
+    }
+  });
+</script>
+{% endblock %}
