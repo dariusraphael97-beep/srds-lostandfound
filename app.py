@@ -739,10 +739,7 @@ def notify():
             (email, keyword, datetime.now().strftime("%Y-%m-%d %H:%M"))
         )
         db.commit()
-        if phone:
-            flash(f"Alert set! We'll text {phone} and email {email} when a '{keyword}' is posted.", "success")
-        else:
-            flash(f"Alert set! We'll email {email} when a '{keyword}' item is posted.", "success")
+        flash(f"You're registered! We'll reach out to {email} when a matching item is posted.", "success")
     else:
         flash("Please enter your email and a keyword.", "error")
     return redirect(url_for("items"))
