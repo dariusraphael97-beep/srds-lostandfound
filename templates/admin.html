@@ -104,7 +104,7 @@
                 <form method="POST" action="{{ url_for('admin_action') }}" style="display:inline;">
                   <input type="hidden" name="action" value="approve_item" />
                   <input type="hidden" name="item_id" value="{{ item.id }}" />
-                  <button type="submit" class="btn btn-success btn-xs" style="font-weight:700;">✓ Approve & Publish</button>
+                  <button type="submit" class="btn btn-success btn-xs" style="font-weight:700;">Approve & Publish</button>
                 </form>
                 <form method="POST" action="{{ url_for('admin_action') }}" style="display:inline;" onsubmit="return confirm('Delete this item?');">
                   <input type="hidden" name="action" value="reject_item" />
@@ -235,7 +235,7 @@
               <td><span class="badge badge-approved">{{ n.keyword }}</span></td>
               <td style="font-size:0.85rem;">
                 {% if n.phone %}
-                  <span style="color:var(--success);">📱 {{ n.phone }}</span>
+                  <span style="color:var(--success);">{{ n.phone }}</span>
                 {% else %}
                   <span style="color:var(--white-20);">Email only</span>
                 {% endif %}
@@ -262,7 +262,7 @@
             {% for log in sms_logs %}
             <tr>
               <td style="font-size:0.78rem; color:var(--white-40); white-space:nowrap;">{{ log.sent_at }}</td>
-              <td style="font-size:0.85rem; color:var(--white);">📱 {{ log.phone }}</td>
+              <td style="font-size:0.85rem; color:var(--white);">{{ log.phone }}</td>
               <td>{% if log.keyword %}<span class="badge badge-approved">{{ log.keyword }}</span>{% else %}—{% endif %}</td>
               <td style="font-size:0.78rem; color:var(--accent);">{{ log.email or '—' }}</td>
               <td>

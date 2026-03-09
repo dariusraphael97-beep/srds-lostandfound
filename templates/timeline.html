@@ -7,7 +7,7 @@
     <a href="{{ url_for('item_detail', item_id=item.id) }}"
        style="display:inline-flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--white-40); margin-bottom:16px; transition:color var(--transition);"
        onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--white-40)'">← Back to item</a>
-    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:14px;">📋 Item Journey</div>
+    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:14px;">Item Journey</div>
     <h1 id="timeline-heading" style="font-size:clamp(1.6rem,3.5vw,2.6rem);">{{ item.name }}</h1>
     <p>Tracking the full history of this item from discovery to return.</p>
   </div>
@@ -30,7 +30,7 @@
       <div style="padding:16px 20px; position:relative; z-index:1;">
         <span class="card-category" style="margin-bottom:8px; display:inline-flex;">{{ item.category }}</span>
         <h3 style="color:var(--white); font-size:1.1rem; margin-bottom:4px;">{{ item.name }}</h3>
-        <p style="font-size:0.82rem; color:var(--white-40);">📍 {{ item.location }} &nbsp;·&nbsp; 📅 {{ item.date_found }}</p>
+        <p style="font-size:0.82rem; color:var(--white-40);">{{ item.location }} &nbsp;·&nbsp; {{ item.date_found }}</p>
         <span class="badge badge-{% if item.status == 'approved' %}approved{% elif item.status == 'claimed' %}claimed{% else %}pending{% endif %}" style="margin-top:8px; display:inline-block;">
           {{ item.status|capitalize }}
         </span>
@@ -45,25 +45,25 @@
       {% set all_steps = [] %}
 
       {# Always show "found" as first step #}
-      {% set _ = all_steps.append({'type': 'found', 'label': 'Item Discovered', 'detail': 'Someone found this item on campus and reported it to the system.', 'time': item.date_found, 'icon': '🔍', 'color': 'var(--accent)'}) %}
+      {% set _ = all_steps.append({'type': 'found', 'label': 'Item Discovered', 'detail': 'Someone found this item on campus and reported it to the system.', 'time': item.date_found, 'icon': '○', 'color': 'var(--accent)'}) %}
 
       {# DB events #}
       {% for e in events %}
         {% if e.event == 'approved' %}
-          {% set _ = all_steps.append({'type': 'approved', 'label': 'Reviewed by Staff', 'detail': e.detail or 'Item reviewed and approved by SRDS administration.', 'time': e.timestamp, 'icon': '✅', 'color': 'var(--success)'}) %}
+          {% set _ = all_steps.append({'type': 'approved', 'label': 'Reviewed by Staff', 'detail': e.detail or 'Item reviewed and approved by SRDS administration.', 'time': e.timestamp, 'icon': '✓', 'color': 'var(--success)'}) %}
         {% elif e.event == 'claim_submitted' %}
-          {% set _ = all_steps.append({'type': 'claim', 'label': 'Claim Submitted', 'detail': e.detail or 'A student submitted a claim for this item.', 'time': e.timestamp, 'icon': '📬', 'color': 'var(--warning)'}) %}
+          {% set _ = all_steps.append({'type': 'claim', 'label': 'Claim Submitted', 'detail': e.detail or 'A student submitted a claim for this item.', 'time': e.timestamp, 'icon': '', 'color': 'var(--warning)'}) %}
         {% elif e.event == 'returned' %}
-          {% set _ = all_steps.append({'type': 'returned', 'label': 'Returned to Owner', 'detail': e.detail or 'Item successfully returned to its owner.', 'time': e.timestamp, 'icon': '🎉', 'color': 'var(--success)'}) %}
+          {% set _ = all_steps.append({'type': 'returned', 'label': 'Returned to Owner', 'detail': e.detail or 'Item successfully returned to its owner.', 'time': e.timestamp, 'icon': '✓', 'color': 'var(--success)'}) %}
         {% endif %}
       {% endfor %}
 
       {# Pending steps if not yet returned #}
       {% if item.status != 'claimed' %}
         {% if not events or events|selectattr('event', 'equalto', 'claim_submitted')|list|length == 0 %}
-          {% set _ = all_steps.append({'type': 'pending_claim', 'label': 'Awaiting Claim', 'detail': 'No claim submitted yet. Is this yours?', 'time': None, 'icon': '⏳', 'color': 'var(--white-40)'}) %}
+          {% set _ = all_steps.append({'type': 'pending_claim', 'label': 'Awaiting Claim', 'detail': 'No claim submitted yet. Is this yours?', 'time': None, 'icon': '○', 'color': 'var(--white-40)'}) %}
         {% endif %}
-        {% set _ = all_steps.append({'type': 'pending_return', 'label': 'Pickup & Return', 'detail': 'Item will be returned to verified owner at the front office.', 'time': None, 'icon': '🏠', 'color': 'var(--white-40)'}) %}
+        {% set _ = all_steps.append({'type': 'pending_return', 'label': 'Pickup & Return', 'detail': 'Item will be returned to verified owner at the front office.', 'time': None, 'icon': '○', 'color': 'var(--white-40)'}) %}
       {% endif %}
 
       <div style="position:relative;">

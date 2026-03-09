@@ -19,7 +19,7 @@
       <div class="reveal">
         <div class="item-detail-img">
           {% if item.photo_url %}
-            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div class=no-photo style=min-height:320px>'+(this.dataset.emoji||'📦')+'</div>'" data-emoji="{{ item.emoji }}" />
+            <img src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div class=no-photo></div>'" data-emoji="{{ item.emoji }}" />
           {% elif item.photo %}
             <img src="{{ url_for('uploaded_file', filename=item.photo) }}" alt="Photo of {{ item.name }}" />
           {% else %}
@@ -31,11 +31,11 @@
         <div style="margin-top:20px; background:rgba(13,27,62,0.8); border:1px solid var(--white-10); border-radius:var(--radius); padding:24px; backdrop-filter:blur(16px);">
           <div class="detail-field">
             <div class="detail-label">Location Found</div>
-            <div class="detail-value">📍 {{ item.location }}</div>
+            <div class="detail-value">{{ item.location }}</div>
           </div>
           <div class="detail-field">
             <div class="detail-label">Date Found</div>
-            <div class="detail-value">📅 {{ item.date_found }} <span class="days-badge" data-found="{{ item.date_found }}" style="margin-left:8px;">…</span></div>
+            <div class="detail-value">{{ item.date_found }} <span class="days-badge" data-found="{{ item.date_found }}" style="margin-left:8px;">…</span></div>
           </div>
           <div class="detail-field">
             <div class="detail-label">Total Unclaimed</div>
@@ -84,7 +84,7 @@
                   <td style="padding:14px 16px; color:var(--white);">{{ v.variant }}</td>
                   <td style="padding:14px 16px; text-align:center;">
                     <span style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:{% if v.quantity > 0 %}rgba(74,127,212,0.15); color:var(--accent); border:1px solid rgba(74,127,212,0.3){% else %}rgba(34,197,94,0.1); color:var(--success); border:1px solid rgba(34,197,94,0.2){% endif %}; font-weight:700; font-size:0.9rem;">
-                      {% if v.quantity > 0 %}{{ v.quantity }}{% else %}✓{% endif %}
+                      {% if v.quantity > 0 %}{{ v.quantity }}{% else %}—{% endif %}
                     </span>
                   </td>
                 </tr>
@@ -92,7 +92,7 @@
               </tbody>
             </table>
           </div>
-          <p style="font-size:0.78rem; color:var(--white-40); margin-top:10px;">✓ = claimed &nbsp;·&nbsp; Number = qty still unclaimed</p>
+          <p style="font-size:0.78rem; color:var(--white-40); margin-top:10px;">— = claimed &nbsp;·&nbsp; Number = qty still unclaimed</p>
         </div>
         {% endif %}
 
@@ -104,9 +104,9 @@
             Be specific — include any identifying details like serial numbers or personalization.
           </p>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-primary">📬 Submit a Claim</a>
-            <a href="{{ url_for('timeline', item_id=item.id) }}" class="btn btn-glass">📋 View Journey</a>
-            <button class="bookmark-btn" data-id="{{ item.id }}" style="width:auto; padding:0 16px;" aria-label="Bookmark this item">🏷️ Save</button>
+            <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-primary"> Submit a Claim</a>
+            <a href="{{ url_for('timeline', item_id=item.id) }}" class="btn btn-glass">View Journey</a>
+            <button class="bookmark-btn" data-id="{{ item.id }}" style="width:auto; padding:0 16px; gap:7px;" aria-label="Bookmark this item"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:13px;height:13px"><path d="M4 2h8a1 1 0 0 1 1 1v10l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg> Save</button>
           </div>
         </div>
 
@@ -121,10 +121,10 @@
   document.querySelectorAll('.days-badge[data-found]').forEach(badge => {
     const days = Math.floor((new Date() - new Date(badge.dataset.found)) / 86400000);
     badge.classList.remove('fresh','old');
-    if (days === 0)      { badge.textContent = '🕐 Today';        badge.classList.add('fresh'); }
-    else if (days <= 3)  { badge.textContent = `🕐 ${days}d ago`; badge.classList.add('fresh'); }
-    else if (days <= 14) { badge.textContent = `🕐 ${days}d ago`; }
-    else                 { badge.textContent = `🕐 ${days}d ago`; badge.classList.add('old'); }
+    if (days === 0)      { badge.textContent = 'Today';        badge.classList.add('fresh'); }
+    else if (days <= 3)  { badge.textContent = `${days}d ago`; badge.classList.add('fresh'); }
+    else if (days <= 14) { badge.textContent = `${days}d ago`; }
+    else                 { badge.textContent = `${days}d ago`; badge.classList.add('old'); }
   });
 </script>
 {% endblock %}

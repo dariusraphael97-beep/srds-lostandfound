@@ -3,6 +3,8 @@
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
+  const sunSVG  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  const moonSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 
   /* ===================== SPOTLIGHT CURSOR ===================== */
   // Subtle radial glow that follows the mouse — desktop only
@@ -121,13 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ===================== DARK / LIGHT TOGGLE ===================== */
   const themeBtn = document.getElementById('themeToggle');
   const saved = localStorage.getItem('srds-theme');
-  if (saved === 'light') { document.body.classList.add('light-mode'); if (themeBtn) themeBtn.textContent = '🌙'; }
+  if (saved === 'light') { document.body.classList.add('light-mode'); if (themeBtn) themeBtn.innerHTML = moonSVG; }
   if (themeBtn) {
     themeBtn.addEventListener('click', () => {
       document.body.classList.toggle('light-mode');
       const isLight = document.body.classList.contains('light-mode');
       localStorage.setItem('srds-theme', isLight ? 'light' : 'dark');
-      themeBtn.textContent = isLight ? '🌙' : '☀️';
+      themeBtn.innerHTML = isLight ? moonSVG : sunSVG;
     });
   }
 
@@ -142,17 +144,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.bookmark-btn').forEach(btn => {
     const id = btn.dataset.id;
-    if (getBookmarks().includes(id)) { btn.classList.add('saved'); btn.textContent = '🔖'; }
+    if (getBookmarks().includes(id)) { btn.classList.add('saved'); btn.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor" stroke="none" style="width:13px;height:13px"><path d="M4 2h8a1 1 0 0 1 1 1v10l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>'; }
     btn.addEventListener('click', () => {
       let bm = getBookmarks();
       if (bm.includes(id)) {
         bm = bm.filter(x => x !== id);
-        btn.classList.remove('saved'); btn.textContent = '🏷️';
-        showToast('Bookmark removed', 'info');
+        btn.classList.remove('saved'); btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:13px;height:13px"><path d="M4 2h8a1 1 0 0 1 1 1v10l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>';
+        showToast('Bookmark removed');
       } else {
         bm.push(id);
-        btn.classList.add('saved'); btn.textContent = '🔖';
-        showToast('Item bookmarked!', 'success');
+        btn.classList.add('saved'); btn.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor" stroke="none" style="width:13px;height:13px"><path d="M4 2h8a1 1 0 0 1 1 1v10l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>';
+        showToast('Saved to bookmarks');
       }
       saveBookmarks(bm);
       updateBookmarkBadge();
@@ -199,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
     const toast = document.createElement('div');
     toast.className = `flash ${type}`;
-    toast.innerHTML = `${type === 'success' ? '✓' : 'ℹ'} ${msg}`;
+    toast.innerHTML = msg;
     container.appendChild(toast);
     setTimeout(() => {
       toast.style.transition = 'all 0.5s ease';

@@ -5,7 +5,7 @@
 
 <header class="page-header" aria-labelledby="browse-heading">
   <div class="container">
-    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:16px;">📦 Found Items Directory</div>
+    <div class="hero-eyebrow" style="display:inline-flex; margin-bottom:16px;">Found Items Directory</div>
     <h1 id="browse-heading">Browse Lost &amp; Found</h1>
     <p>Search all items reported at Saddle River Day School.</p>
   </div>
@@ -20,9 +20,9 @@
       <div style="display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap;">
         <div style="flex:1; min-width:220px;">
           <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
-            <span style="font-size:1.1rem;" aria-hidden="true">🔔</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:18px;height:18px;flex-shrink:0;opacity:0.7"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             <strong style="color:var(--white); font-size:0.95rem;">Item Alert</strong>
-            <span style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; background:rgba(34,197,94,0.15); color:var(--success); border:1px solid rgba(34,197,94,0.25); padding:2px 8px; border-radius:100px;">SMS + Email</span>
+            <span style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; background:rgba(22,163,74,0.12); color:#4ade80; border:1px solid rgba(22,163,74,0.22); padding:2px 8px; border-radius:100px;">SMS + Email</span>
           </div>
           <p style="font-size:0.82rem; margin:0; color:var(--white-40); line-height:1.5;">
             Enter a keyword and we'll alert you the moment a matching item is posted — by text and email.
@@ -45,7 +45,7 @@
           <div style="flex:1; min-width:130px;">
             <div style="display:flex; align-items:center; gap:5px; margin-bottom:5px;">
               <div style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--white-40);">Phone</div>
-              <span style="font-size:0.6rem; color:var(--success); font-weight:600;">📱 for SMS</span>
+              <span style="font-size:0.6rem; color:#4ade80; font-weight:600;">for SMS</span>
             </div>
             <input type="tel" name="phone" placeholder="+1 (201) 555-0100"
                    style="width:100%; padding:9px 14px; font-size:0.85rem; border-radius:var(--radius-sm); background:var(--white-05); border:1px solid var(--white-20); color:var(--white);"
@@ -80,7 +80,7 @@
       </div>
       <div>
         <label style="visibility:hidden; display:block; font-size:0.78rem;">Go</label>
-        <button class="btn btn-primary btn-sm" id="searchBtn" type="button">🔍 Search</button>
+        <button class="btn btn-primary btn-sm" id="searchBtn" type="button">Search</button>
       </div>
       {% if search or category %}
       <div>
@@ -110,19 +110,21 @@
           {% if item.photo %}
             <img class="card-img" src="{{ url_for('uploaded_file', filename=item.photo) }}" alt="Photo of {{ item.name }}" loading="lazy" />
           {% elif item.photo_url %}
-            <img class="card-img" src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" loading="lazy" onerror="this.outerHTML='<div class=card-img-placeholder>'+(this.dataset.emoji||'📦')+'</div>'" data-emoji="{{ item.emoji }}" />
+            <img class="card-img" src="{{ item.photo_url }}" alt="Photo of {{ item.name }}" loading="lazy" onerror="this.outerHTML='<div class=card-img-placeholder><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;opacity:0.3"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>'" data-emoji="{{ item.emoji }}" />
           {% else %}
-            <div class="card-img-placeholder" aria-label="{{ item.category }} item">{{ item.emoji }}</div>
+            <div class="card-img-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="width:40px;height:40px;opacity:0.3"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </div>
           {% endif %}
           <div class="card-img-overlay" aria-hidden="true"></div>
-          <div style="position:absolute; top:10px; right:10px;"><span class="days-badge" data-found="{{ item.date_found }}">🕐 …</span></div>
+          <div style="position:absolute; top:10px; right:10px;"><span class="days-badge" data-found="{{ item.date_found }}">…</span></div>
         </div>
         <div class="card-body">
           <span class="card-category">{{ item.category }}</span>
           <a href="{{ url_for('item_detail', item_id=item.id) }}" style="text-decoration:none;"><h3 class="card-title" style="transition:color var(--transition);" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color=''">{{ item.name }}</h3></a>
           <div class="card-meta">
-            <span>📍 {{ item.location }}</span>
-            <span>📅 {{ item.date_found }}</span>
+            <span>{{ item.location }}</span>
+            <span>{{ item.date_found }}</span>
           </div>
           <p style="font-size:0.84rem; color:var(--white-40); margin-bottom:16px; line-height:1.5;">
             {{ item.description[:90] }}{% if item.description|length > 90 %}…{% endif %}
@@ -144,7 +146,7 @@
           <div class="card-actions">
             <a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-primary btn-sm">View Details</a>
             <a href="{{ url_for('claim', item_id=item.id) }}" class="btn btn-glass btn-sm">Claim</a>
-            <button class="bookmark-btn" data-id="{{ item.id }}" aria-label="Bookmark {{ item.name }}" title="Save for later">🏷️</button>
+            <button class="bookmark-btn" data-id="{{ item.id }}" aria-label="Bookmark {{ item.name }}" title="Save for later"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 2h8a1 1 0 0 1 1 1v10l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg></button>
           </div>
         </div>
       </article>
@@ -153,7 +155,7 @@
 
     {% else %}
     <div class="empty-state reveal" role="status">
-      <div class="empty-icon" aria-hidden="true">🔍</div>
+      <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></div>
       <h3>No items found</h3>
       <p>{% if search or category %}Try different keywords or clear your filters.{% else %}No approved items yet — check back soon!{% endif %}</p>
       {% if search or category %}<a href="{{ url_for('items') }}" class="btn btn-primary" style="margin-top:20px;">Clear Filters</a>{% endif %}
@@ -189,10 +191,10 @@
   document.querySelectorAll('.days-badge[data-found]').forEach(badge => {
     const days = Math.floor((new Date() - new Date(badge.dataset.found)) / 86400000);
     badge.classList.remove('fresh','old');
-    if (days === 0)      { badge.textContent = '🕐 Today';        badge.classList.add('fresh'); }
-    else if (days <= 3)  { badge.textContent = `🕐 ${days}d ago`; badge.classList.add('fresh'); }
-    else if (days <= 14) { badge.textContent = `🕐 ${days}d ago`; }
-    else                 { badge.textContent = `🕐 ${days}d ago`; badge.classList.add('old'); }
+    if (days === 0)      { badge.textContent = 'Today';        badge.classList.add('fresh'); }
+    else if (days <= 3)  { badge.textContent = `${days}d ago`; badge.classList.add('fresh'); }
+    else if (days <= 14) { badge.textContent = `${days}d ago`; }
+    else                 { badge.textContent = `${days}d ago`; badge.classList.add('old'); }
   });
 </script>
 {% endblock %}

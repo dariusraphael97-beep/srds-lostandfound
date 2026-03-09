@@ -125,17 +125,17 @@ DATABASE = os.path.join(os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "/tmp"), "lo
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Category emoji map
+# Category icon labels (used as fallback placeholder text when no photo available)
 CATEGORY_EMOJI = {
-    "Clothing & Apparel":   "👕",
-    "Electronics":          "📱",
-    "Books & Stationery":   "📚",
-    "Bags & Backpacks":     "🎒",
-    "Sports Equipment":     "⚽",
-    "Jewelry & Accessories":"💍",
-    "Keys":                 "🔑",
-    "Water Bottles":        "💧",
-    "Other":                "📦",
+    "Clothing & Apparel":   "Apparel",
+    "Electronics":          "Electronics",
+    "Books & Stationery":   "Books",
+    "Bags & Backpacks":     "Bag",
+    "Sports Equipment":     "Sports",
+    "Jewelry & Accessories":"Jewelry",
+    "Keys":                 "Keys",
+    "Water Bottles":        "Bottle",
+    "Other":                "Item",
 }
 
 # Curated Unsplash placeholder images by category (royalty-free)
